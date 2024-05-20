@@ -1,0 +1,372 @@
+{% extends "home.html" %} {% block content %}
+    <style>
+        /* Establece un tamaño máximo de altura para el contenedor de la tabla */
+        .table-container {
+        max-height: 400px; /* ajusta según sea necesario */
+        overflow-y: auto; /* habilita el desplazamiento vertical */
+        }
+    </style>
+    <h1>ii</h1>
+    <nav class="navbar bg-body-tertiary fixed-top">
+        <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'Inicio' %}">Inicio</a>
+        
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasNavbar"
+            aria-controls="offcanvasNavbar"
+            aria-label="Toggle navigation"
+        >
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div
+            class="offcanvas offcanvas-end"
+            tabindex="-1"
+            id="offcanvasNavbar"
+            aria-labelledby="offcanvasNavbarLabel"
+        >
+            <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Pc Accesorios</h5>
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="offcanvas"
+                aria-label="Close"
+            ></button>
+            </div>
+            <div class="offcanvas-body">
+            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'Inicio' %}">Inicio</a>
+                    <p></p>
+                    {% if M.Catalago != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarCatalagos' modelo_nombre='cNombre'%}">Catalagos</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Personas != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarPersonas' %}">Personas</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Usuarios != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarUsuarios' %}">Usuarios</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Aplicaciones != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarAplicaciones' %}">Aplicaciones</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Accesos != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listaraccesos' %}">Accesos</a>
+                        <p></p>
+                    {% endif %}
+                    <a class="nav-link active" aria-current="page" href="{% url 'CambioPassword' %}">Cambiar contraseña</a>
+                    <p></p>
+                    <a class="nav-link active" aria-current="page" href="{% url 'login' %}">Cerrar sesion</a>
+                </li>
+            </ul>
+            </div>
+        </div>
+        </div>
+    </nav>
+
+    {% if mensaje %}
+    <div class="card">
+        <div class="card-header">
+          Mensaje
+        </div>
+        <div class="card-body">
+          <h5 class="card-title">Curp Existente ¿Que deseas hacer con {{existe.Curp}}?</h5> 
+            {% if M.btn_Modificar != 0 %}
+                <a class="btn btn-warning" href="{% url 'editarPersona' existe.id  existe.CvDireccion %}"> Editar </a> 
+            {% endif %}
+        
+            {% if M.btn_Eliminar != 0 %}
+                <a class="btn btn-danger" href="{% url 'eliminarPersonas' existe.id%}"> Eliminar </a>
+            {% endif %}
+          
+            <a class="btn btn-secondary" href="{% url 'registrarPersonas' %}"> Cancelar </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        window.onload = function() {
+            // Aquí puedes llamar a la función que deseas ejecutar antes de refrescar la página
+            miMetodo();
+        };
+        
+        function miMetodo() {
+            var entrada = document.getElementById("id_curp").value;;
+            //012910
+            //Recibe 29 10 01
+            //Se pone 01 10 29
+            //ZAJJ011029HCSMMRA1
+            //DOSD080993MTCLRDO1
+            if (entrada.length === 18) {
+                var año = entrada.substring(4, 6);
+                var mes = entrada.substring(6, 8);
+                var dia = entrada.substring(8, 10);
+                var fechaFormateada = "20" + año + "-" + mes + "-" + dia;
+    
+                document.getElementById("id_FecNac").value = fechaFormateada;
+            } else {
+                document.getElementById("id_FecNac").value = "";
+            }
+        }
+    </script>
+    
+    <h1>Mantenimiento De Personas</h1>
+
+    <div class="content container">
+        <form action="/registrarPersonas/" method="POST">
+            {% csrf_token %}
+            <label for="lang">Curp:</label>
+            <input type="text" name="Curp" required="" id="id_curp" maxlength="18" value="{{cur}}">
+            <label style="color: white;">Es</label>
+            <label for="lang">Nombre:</label>
+            <select name="NombrePersona" id="lang" required="">
+                <option value=""></option>
+                {% for Nombre in Nombres %}
+                    <option value="{{ Nombre.id }}">
+                        {{ Nombre.Ds }}
+                    </option>
+                {% endfor %}
+            </select>
+            <label style="color: white;">Espacio__</label>
+            <label for="lang">Apellido Paterno:</label>
+            <select name="ApellidoPaterno" id="lang" required="">
+                <option value=""></option>
+                {% for Apellido in Apellidos %}
+                    <option value="{{ Apellido.id }}">
+                        {{ Apellido.Ds }}
+                    </option>
+                {% endfor %}
+            </select>
+            <label style="color: white;">Espacio____</label>
+            <label for="lang">Apellido Materno:</label>
+            <select name="ApellidoMaterno" id="lang" required="">
+                <option value=""></option>
+                {% for Apellido in Apellidos %}
+                    <option value="{{ Apellido.id }}">
+                        {{ Apellido.Ds }}
+                    </option>
+                {% endfor %}
+            </select>
+            
+            <p></P>
+            <label for="lang">Tipo De Persona:</label>
+            <select name="TipoPersona" id="TipPerson" onchange="seleccionarElemento()">
+                <option value="{{ t.id }}">{{ t.Ds }}</option>
+                {% for cTpPerson in cTpPersons %}
+                    <option value="{{ cTpPerson.id }}">
+                        {{ cTpPerson.Ds }}
+                    </option>
+                {% endfor %}
+            </select>   
+            <label style="color: white;">Esp_</label>
+            <label for="lang">Genero:</label>
+            <select name="GeneroPersona" id="lang" required="">
+                <option value=""></option>
+                {% for Genero in Generos %}
+                    <option value="{{ Genero.id }}">
+                        {{ Genero.Ds }}
+                    </option>
+                {% endfor %}
+            </select>
+            <label style="color: white;">Espacio_______</label>
+            <label for="lang">Trabajo:</label>
+            <select name="TrabajoPersona" id="lang" required="">
+                <option value=""></option>
+                {% for Trabajo in Trabajos %}
+                    <option value="{{ Trabajo.id }}">
+                        {{ Trabajo.Ds }}
+                    </option>
+                {% endfor %}
+            </select>
+            <label style="color: white;">Espacio________</label>
+           <label for="lang">Aficion:</label>
+            <select name="AficionDs" id="lang" required="">
+                <option value=""></option>
+                {% for Aficion in Aficions %}
+                    <option value="{{ Aficion.id }}">
+                        {{ Aficion.Ds }}
+                    </option>
+                {% endfor %}
+            </select>
+            <p></P>
+            
+            {{form}}
+
+            <p></P>
+            <label for="lang">Calle:</label>
+            <select name="CalleDs" id="lang" required="">
+                <option value=""></option>
+                {% for Calle in Calles %}
+                    <option value="{{ Calle.id }}">
+                        {{ Calle.Ds }}
+                    </option>
+                {% endfor %}
+            </select>
+            <label style="color: white;">Espacio_________</label>
+            <label for="lang">Colonia:</label>
+            <select name="ColoniaDs" id="lang" required="">
+                <option value=""></option>
+                {% for Colonia in Colonias %}
+                    <option value="{{ Colonia.id }}">
+                        {{ Colonia.Ds }}
+                    </option>
+                {% endfor %}
+            </select>
+            <label style="color: white;">Espacio_____</label>
+            <label for="lang">Municipio:</label>
+            <select name="MunicipioDs" id="lang" required="">
+                <option value=""></option>
+                {% for Municipio in Municipios %}
+                    <option value="{{ Municipio.id }}">
+                        {{ Municipio.Ds }}
+                    </option>
+                {% endfor %}
+            </select>
+            <label style="color: white;">Espacio______</label>
+           <label for="lang">Ciudad:</label>
+            <select name="CiudadDs" id="lang" required="">
+                <option value=""></option>
+                {% for Ciudad in Ciudads %}
+                    <option value="{{ Ciudad.id }}">
+                        {{ Ciudad.Ds }}
+                    </option>
+                {% endfor %}
+            </select>
+            <p></P>
+
+            
+            {{form2}}
+            <div class="d-flex align-items-center justify-content-center">
+                <button type="submit" class="btn btn-success">Guardar</button>
+                <h1 style="color: white;">aa</h1>
+                <a class="btn btn-danger" href="{% url 'listarPersonas' %}"> Cancelar </a>
+            </div>
+
+        </form> 
+    </div> 
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<div class="table-container">
+    <table class="table table-striped text-center">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">CURP</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Direccion</th>
+                <th scope="col">Telefono</th>
+                <th scope="col">E_Mail</th>
+                <th scope="col">Genero</th>
+                <th scope="col">Trabajo</th>
+                <th scope="col">Fecha Nacimiento</th>
+                <th scope="col">Tipo de Persona</th>
+                <th scope="col">Aficion</th>
+                <th scope="col">Notas</th>
+                <th scope="col">Opciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for persona in personas %}
+                <tr>
+                    <th scope="row"> {{persona.id}} </th>
+                    <td>{{persona.Curp}}</td>
+                    <td>{{persona.Nombre.Ds}} {{persona.ApellidoPaterno.Ds}} {{persona.ApellidoMaterno.Ds}}</td>
+                    <td>{{persona.DireccionNombre}}</td>
+                    <td>{{persona.Telefono}}</td>
+                    <td>{{persona.E_mail}}</td>
+                    <td>{{persona.Genero.Ds}}</td>
+                    <td>{{persona.Trabajo.Ds}}</td>
+                    <td>{{persona.FecNac}}</td>
+                    <td>{{persona.TpPerson.Ds}}</td>
+                    <td>{{persona.Aficion.Ds}}</td>
+                    <td>{{persona.Notas}}</td>
+                    <td>
+                        {% if M.btn_Modificar != 0 %}
+                            <a class="btn btn-warning" href="{% url 'editarPersona' persona.id  persona.CvDireccion %}"> Editar </a> 
+                        {% endif %}
+                    
+                        {% if M.btn_Eliminar != 0 %}
+                            <a class="btn btn-danger" href="{% url 'eliminarPersonas' persona.id%}"> Eliminar </a> 
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div> 
+
+<script>
+
+    document.getElementById("id_curp").addEventListener("input", function() {
+        var entrada = this.value;
+        //012910
+        //Recibe 29 10 01
+        //Se pone 01 10 29
+        //ZAJJ011029HCSMMRA1
+        //0123456789
+        //DOSD080993MTCLRDO1
+        if (entrada.length === 18) {
+            var año = entrada.substring(4, 6);
+            var mes = entrada.substring(6, 8);
+            var dia = entrada.substring(8, 10);
+            var fechaFormateada = "20" + año + "-" + mes + "-" + dia;
+
+            document.getElementById("id_FecNac").value = fechaFormateada;
+        } else {
+            document.getElementById("id_FecNac").value = "";
+        }
+    });
+
+    document.getElementById("id_curp").addEventListener("keydown", function(event) {
+        // Si el usuario presiona Enter o Tab
+        if (event.key === "Enter" || event.key === "Tab") {
+          // Previene el comportamiento por defecto
+          event.preventDefault();
+      
+          var regexCURP = /^[A-Z]{4}\d{6}[HM][A-Z]{6}\d{1}$/;
+          //ZAJJ011029HCSMMRA1
+        
+          var valorCombo = document.getElementById("TipPerson").value;
+          var valorCampoTexto = document.getElementById("id_curp").value;
+            
+            if (!regexCURP.test(valorCampoTexto)) {
+                alert('Por favor, ingresa una CURP válida');
+                input.value = ''; // Limpiamos el campo
+                input.focus(); // Ponemos el foco en el campo para que el usuario pueda corregirlo
+            }
+            else{
+                var valorFecha = document.getElementById("id_FecNac").value;
+                if( valorFecha === ""){
+                    alert('Por favor, ingresa una CURP válida');
+                }
+                else{
+                    url1 = "/validarRegistrarPersonas/" + valorCampoTexto + "/" + valorCombo;
+                    window.location.href = url1;
+                }
+                
+            }
+          
+        }
+      });
+
+    function seleccionarElemento() {
+        
+        var valorCombo = document.getElementById("TipPerson").value;
+        var valorCampoTexto = document.getElementById("id_curp").value;
+        
+        url1 = "/validarRegistrarPersonas/" + valorCampoTexto + "/" + valorCombo;
+        window.location.href = url1;
+    }
+    
+</script>
+    
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "index.html" %} {% block content %}
+    <p></p>
+    <h1> Listado de Alumnos Registrados </h1>
+    <p></p>
+
+    <div class="row col-12 justify-content-end mb-2 pr-0">
+        <!--<button type="button" class="btn btn-success col-md-3">Agregar Nuevo</button>-->
+        <a class="btn btn-success col-md-3" href="{% url 'registrarAlumno'%}">Agregar Nuevo</a>
+    </div>
+    <p></p>
+    {% if mensaje %}
+        <div class="alert alert-success" role="alert">
+            Alumno eliminado exitosamete!
+        </div>
+    {% endif %}
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Apellido</th>
+                <th scope="col">Telefono</th>
+                <th scope="col">Fecha_Nacimiento</th>
+                <th scope="col">Editar</th>
+                <th scope="col">Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alumno in alumnos %}
+                <tr>
+                    <th scope="row"> {{alumno.id}} </th>
+                    <td>{{alumno.nombre}}</td>
+                    <td>{{alumno.apellido}}</td>
+                    <td>{{alumno.telefono}}</td>
+                    <td>{{alumno.fecha_nacimiento}}</td>
+                    <td><a class="btn btn-warning" href="{% url 'editarAlumnos' alumno.id%}"> Editar </a></td>
+                    <td><a class="btn btn-danger" href="{% url 'eliminarAlumnos' alumno.id%}"> Eliminar </a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

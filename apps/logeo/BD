@@ -1,0 +1,153 @@
+INSERT INTO `logeo_maplicaciones` (`id`, `CvAplicaciones`, `DsAplicacion`, `Nivel`) VALUES 
+(NULL, '100000', 'Mantenimiento de Catalagos', '1'),
+(NULL, '110000', 'Alta de Catalagos', '2'),
+(NULL, '120000', 'Baja de Catalagos', '2'),
+(NULL, '130000', 'Modificacion de Catalagos', '2'),
+
+(NULL, '200000', 'Mantenimiento de Personas', '1'),
+(NULL, '210000', 'Alta de Personas', '2'),
+(NULL, '220000', 'Baja de Personas', '2'),
+(NULL, '230000', 'Modificacion de Personas', '2'),
+
+(NULL, '300000', 'Mantenimiento de Pedidos', '1'),
+(NULL, '310000', 'Alta de Pedidos', '2'),
+(NULL, '320000', 'Baja de Pedidos', '2'),
+(NULL, '330000', 'Modificacion de Pedidos', '2'),
+
+(NULL, '400000', 'Mantenimiento de Compras', '1'),
+(NULL, '410000', 'Alta de Compras', '2'),
+(NULL, '420000', 'Baja de Compras', '2'),
+(NULL, '430000', 'Modificacion de Compras', '2'),
+
+(NULL, '500000', 'Mantenimiento de Inventario', '1'),
+(NULL, '510000', 'Alta de Inventario', '2'),
+(NULL, '520000', 'Baja de Inventario', '2'),
+(NULL, '530000', 'Modificacion de Inventario', '2'),
+
+(NULL, '600000', 'Mantenimiento de Ventas', '1'),
+(NULL, '610000', 'Alta de Ventas', '2'),
+(NULL, '620000', 'Baja de Ventas', '2'),
+(NULL, '630000', 'Modificacion de Ventas', '2'),
+
+(NULL, '700000', 'Mantenimiento de Facturación', '1'),
+(NULL, '710000', 'Alta de Facturación', '2'),
+(NULL, '720000', 'Baja de Facturación', '2'),
+(NULL, '730000', 'Modificacion de Facturación', '2'),
+
+(NULL, '800000', 'Mantenimiento de Usuarios', '1'),
+(NULL, '810000', 'Alta de Usuarios', '2'),
+(NULL, '820000', 'Baja de Usuarios', '2'),
+(NULL, '830000', 'Modificacion de Usuarios', '2'),
+
+(NULL, '900000', 'Mantenimiento de Accesos', '1'),
+(NULL, '910000', 'Alta de Accesos', '2'),
+(NULL, '920000', 'Baja de Accesos', '2'),
+(NULL, '930000', 'Modificacion de Accesos', '2');
+
+
+
+INSERT INTO `logeo_maccesos` (`id`, `CvUsuario`, `CvAplicacion`, `DsAplicaciones`) VALUES 
+
+(NULL, '4', '0', '110000'),
+(NULL, '4', '0', '120000'),
+(NULL, '4', '0', '130000'),
+
+(NULL, '4', '0', '210000'),
+(NULL, '4', '0', '220000'),
+(NULL, '4', '0', '230000'),
+
+(NULL, '4', '0', '310000'),
+(NULL, '4', '0', '320000'),
+(NULL, '4', '0', '330000'),
+
+(NULL, '4', '0', '410000'),
+(NULL, '4', '0', '420000'),
+(NULL, '4', '0', '430000'),
+
+(NULL, '4', '0', '500000');
+
+
+Como hacer una consulta que me devuelva los datos de mAplicaiones que no sean los que obtuve en 
+
+ Accesos =  mAccesos.objects.filter(CvUsuario=id_usuario)
+ Accesos.DsAplicaciones
+
+
+INSERT INTO `logeo_maplicaciones` (`id`, `CvAplicaciones`, `DsAplicacion`, `Nivel`) VALUES 
+(NULL, '100000', 'Mantenimiento de Catalagos', '1'),
+(NULL, '110000', 'Alta de Catalagos', '2'),
+(NULL, '120000', 'Baja de Catalagos', '2'),
+(NULL, '130000', 'Modificacion de Catalagos', '2'),
+
+(NULL, '200000', 'Mantenimiento de Personas', '1'),
+(NULL, '210000', 'Alta de Personas', '2'),
+(NULL, '220000', 'Baja de Personas', '2'),
+(NULL, '230000', 'Modificacion de Personas', '2'),
+
+(NULL, '300000', 'Mantenimiento de Usuarios', '1'),
+(NULL, '310000', 'Alta de Usuarios', '2'),
+(NULL, '320000', 'Baja de Usuarios', '2'),
+(NULL, '330000', 'Modificacion de Usuarios', '2'),
+
+(NULL, '400000', 'Mantenimiento de Aplicaciones', '1'),
+(NULL, '410000', 'Alta de Aplicaciones', '2'),
+(NULL, '420000', 'Baja de Aplicaciones', '2'),
+(NULL, '430000', 'Modificacion de Aplicaciones', '2'),
+
+(NULL, '500000', 'Mantenimiento de Accesos', '1'),
+
+
+
+
+Hay alguna manera de trabajar la estructura de la primera tabla y en caso de que el usuario tenga acceso a ella lo marque chekeado y si o deschekeado
+
+
+Como recorrer mi lista de lista_ids para comparar o realizar algo como
+
+for a in Accesos:
+    a.clabe = mAplicaciones.objects.get(DsAplicaciones=lista_ids[i])
+
+
+def registrar_accesos(request, id_usuario, lista):
+    
+    lista_ids = lista.split(',')
+    
+    
+    Accesos =  mAccesos.objects.filter(CvUsuario=id_usuario)
+    
+    aplicaciones_accedidas = mAccesos.objects.filter(CvUsuario=id_usuario).values_list('DsAplicaciones', flat=True)
+    aplicaciones_no_accedidas = mAplicaciones.objects.exclude(CvAplicaciones__in=aplicaciones_accedidas).values_list('DsAplicacion', flat=True)
+    
+    aplicaciones = mAplicaciones.objects.all().order_by('CvAplicaciones')
+    
+    usuarios = mUsuario.objects.all()
+    
+    Persona =  mUsuario.objects.get(pk=id_usuario)
+    registro = mDtPerson.objects.get(id=Persona.CvPerson)
+    Persona.n = cNombre.objects.filter(id=registro.CvNombre).first()
+    Persona.aP = cApellido.objects.filter(id=registro.ApePat).first()
+    Persona.aM = cApellido.objects.filter(id=registro.ApeMat).first()
+    Persona.tp = cTpPerson.objects.filter(id=registro.CvTpPerson).first()
+    Persona.Datos = f"{ Persona.n.Ds } { Persona.aP.Ds } { Persona.aM.Ds }  ({ Persona.tp.Ds })"
+        
+    for u in usuarios:
+        u.busqueda = mDtPerson.objects.filter(id=u.CvPerson).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.tp = cTpPerson.objects.filter(id=u.busqueda.CvTpPerson).first()
+        
+    for a in Accesos:
+        a.Nombre = mAplicaciones.objects.filter(CvAplicaciones=a.DsAplicaciones).first()
+    
+        
+    r = mRegistro.objects.latest('id')
+    M =  mAccesos.objects.all()
+    
+    M.Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
+    M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
+    M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
+    M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+        
+    return render(request, "Accesos.html", {"usuarios":usuarios, "aplicaciones":aplicaciones, "M":M, "Accesos":Accesos, "aplicaciones_accedidas":aplicaciones_accedidas, "aplicaciones_no_accedidas":aplicaciones_no_accedidas, "Persona":Persona, "lista":lista_ids})

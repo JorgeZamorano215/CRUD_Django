@@ -1,0 +1,210 @@
+{% extends "home.html" %} 
+
+{% block content %}
+    <style>
+        /* Establece un tamaño máximo de altura para el contenedor de la tabla */
+        .table-container {
+        max-height: 200px; /* ajusta según sea necesario */
+        overflow-y: auto; /* habilita el desplazamiento vertical */
+        }
+    </style>
+    <p></p>
+    <h1> Listado De Usuarios Reistrados </h1>
+
+    <nav class="navbar bg-body-tertiary fixed-top">
+        <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'Inicio' %}">Inicio</a>
+        
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasNavbar"
+            aria-controls="offcanvasNavbar"
+            aria-label="Toggle navigation"
+        >
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div
+            class="offcanvas offcanvas-end"
+            tabindex="-1"
+            id="offcanvasNavbar"
+            aria-labelledby="offcanvasNavbarLabel"
+        >
+            <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Pc Accesorios</h5>
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="offcanvas"
+                aria-label="Close"
+            ></button>
+            </div>
+            <div class="offcanvas-body">
+            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'Inicio' %}">Inicio</a>
+                    <p></p>
+                    {% if M.Catalago != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarCatalagos' modelo_nombre='cNombre'%}">Catalagos</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Personas != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarPersonas' %}">Personas</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Usuarios != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarUsuarios' %}">Usuarios</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Aplicaciones != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarAplicaciones' %}">Aplicaciones</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Accesos != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listaraccesos' %}">Accesos</a>
+                        <p></p>
+                    {% endif %}
+                    <a class="nav-link active" aria-current="page" href="{% url 'CambioPassword' %}">Cambiar contraseña</a>
+                    <p></p>
+                    <a class="nav-link active" aria-current="page" href="{% url 'login' %}">Cerrar sesion</a>
+                </li>
+            </ul>
+            </div>
+        </div>
+        </div>
+    </nav>
+
+    {% if Mensaje %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert" class="justify-content-center" style="text-align: center;">
+            <strong> {{ Mensaje }}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+    
+    
+    <h1>Mantenemiento De Accesos</h1>
+    <p></p>
+
+    <label for="lang">Usuarios:</label>
+    <select name="lenguajes" id="miLista" onchange="seleccionarElemento()">
+        <option value="{{Persona.id}}">{{ Persona.Datos }} </option>
+        {% for p in usuarios %}
+            <option value="{{ p.id }}">
+                {{ p.n.Ds }} {{ p.aP.Ds }} {{ p.aM.Ds }}  ({{ p.tp.Ds }})
+            </option>
+        {% endfor %}
+    </select>
+    <p></P>
+
+    
+    <form id="checkboxForm">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Aplicaciones Sin Acceso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for aplicacion_no_accedida in aplicaciones_no_accedidas %}
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="aplicaciones_no_accedidas[]" value="{{ aplicacion_no_accedida }}" id="{{ aplicacion_no_accedida }}">
+                                            <label class="form-check-label" for="{{ aplicacion_no_accedida }}">
+                                                {{ aplicacion_no_accedida }}
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Aplicaciones Con Acceso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for acceso in Accesos %}
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="accesos[]" value="{{ acceso.Nombre.DsAplicacion }}" id="{{ acceso.Nombre.DsAplicacion }}" checked>
+                                            <label class="form-check-label" for="{{ acceso.Nombre.DsAplicacion }}">
+                                                {{ acceso.Nombre.DsAplicacion }}
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <p></P>
+        <p></P>
+        <button type="button" class="btn btn-success" onclick="obtenerValores()">Guardar</button>
+        <input class="btn btn-danger" type="reset" value="Cancelar">
+    </form>
+    <p></P>
+    
+    <div class="row col-12 justify-content-end mb-2 pr-0">
+        <a class="btn btn-primary" href="{% url 'Inicio' %}">Salir</a>
+    </div>
+
+    <script>
+
+        function seleccionarElemento() {
+        
+            var valorCombo = document.getElementById("miLista").value;
+            
+            url1 = "/listaraccesos2/" + valorCombo;
+            window.location.href = url1;
+        }
+
+        function obtenerValores() {
+            // Obtener los checkboxes marcados de las aplicaciones sin acceso
+            var aplicacionesNoAcceso = document.querySelectorAll('input[name="aplicaciones_no_accedidas[]"]:checked');
+            var aplicacionesNoAccesoValores = [];
+            aplicacionesNoAcceso.forEach(function(checkbox) {
+                aplicacionesNoAccesoValores.push(checkbox.value);
+            });
+            console.log('Aplicaciones sin acceso marcadas:', aplicacionesNoAccesoValores);
+        
+            // Obtener los checkboxes marcados de las aplicaciones con acceso
+            var accesos = document.querySelectorAll('input[name="accesos[]"]:checked');
+            var accesosValores = [];
+            accesos.forEach(function(checkbox) {
+                accesosValores.push(checkbox.value);
+            });
+            console.log('Aplicaciones con acceso marcadas:', accesosValores);
+        
+            // Unir ambas listas en una sola
+            var todasLasAplicaciones = aplicacionesNoAccesoValores.concat(accesosValores);
+            console.log('Todas las aplicaciones marcadas:', todasLasAplicaciones);
+
+            var valorCombo = document.getElementById("miLista").value;
+
+            if (valorCombo === '') {
+                alert('Por favor, selecciona una opción en la lista de Usuarios.');
+            } else {
+                // Realiza el resto de las acciones
+                // Construcción de la URL y redireccionamiento
+                url1 = "/registraraccesos/" + valorCombo + "/" + todasLasAplicaciones;
+                window.location.href = url1;
+            }
+        }
+
+    </script>
+
+{% endblock %}

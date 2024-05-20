@@ -1,0 +1,153 @@
+{% extends "home.html" %} 
+
+{% block content %}
+
+    <p></p>
+    <h1> Listado De Usuarios Reistrados </h1>
+    <nav class="navbar bg-body-tertiary fixed-top">
+        <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'Inicio' %}">Inicio</a>
+        
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasNavbar"
+            aria-controls="offcanvasNavbar"
+            aria-label="Toggle navigation"
+        >
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div
+            class="offcanvas offcanvas-end"
+            tabindex="-1"
+            id="offcanvasNavbar"
+            aria-labelledby="offcanvasNavbarLabel"
+        >
+            <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Pc Accesorios</h5>
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="offcanvas"
+                aria-label="Close"
+            ></button>
+            </div>
+            <div class="offcanvas-body">
+            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'Inicio' %}">Inicio</a>
+                    <p></p>
+                    {% if M.Catalago != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarCatalagos' modelo_nombre='cNombre'%}">Catalagos</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Personas != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarPersonas' %}">Personas</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Usuarios != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarUsuarios' %}">Usuarios</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Aplicaciones != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarAplicaciones' %}">Aplicaciones</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Accesos != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listaraccesos' %}">Accesos</a>
+                        <p></p>
+                    {% endif %}
+                    <a class="nav-link active" aria-current="page" href="{% url 'CambioPassword' %}">Cambiar contraseña</a>
+                    <p></p>
+                    <a class="nav-link active" aria-current="page" href="{% url 'login' %}">Cerrar sesion</a>
+                </li>
+            </ul>
+            </div>
+        </div>
+        </div>
+    </nav>
+
+    {% if mensaje %}
+        <div class="alert alert-danger" role="alert" class="justify-content-center" style="text-align: center;">
+            {{ mensaje }}
+        </div>
+    {% endif %}
+    
+    <h1>Mantenimiento De Catalagos </h1>
+    <h1 style="color: white;">aa</h1>
+
+    <label for="lang">Catalagos: </label>
+        <select name="lenguajes" id="miLista">
+            <option value="">{{titulo}}</option>
+            {% for lista in listas %}
+                <option value="{{ lista.Seleccion }}">
+                    {{ lista.Nombre }}
+                </option>
+            {% endfor %}
+        </select>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <div class="content container">
+        <div class="d-flex flex-column align-items-center justify-content-center">
+        <form action="{% url 'registrarCatalagos' Seleccion %}" method="POST">
+            
+            <p></p>
+            {% csrf_token %} 
+            
+            {{form.as_p}}
+            <div class="d-flex align-items-center justify-content-center">
+                <button type="submit" class="btn btn-success">Guardar</button>
+                <h1 style="color: white;">aa</h1>
+                <a class="btn btn-danger" href="{% url 'listarCatalagos' Seleccion %}"> Cancelar </a>
+            </div>
+
+        </form> 
+        </div>
+    </div>
+
+    <table class="table table-striped text-center">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Descripcion</th>
+                <th scope="col">Opciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for catalago in catalagos %}
+                <tr>
+                    <th scope="row"> {{catalago.id}} </th>
+                    <td>{{catalago.Ds}}</td>
+                    <td>
+                        {% if M.btn_Modificar != 0 %}
+                            <a class="btn btn-warning" href="{% url 'editarCatalagos' Seleccion catalago.id %}"> Editar </a> 
+                        {% endif %}
+                    
+                        
+                        {% if M.btn_Eliminar != 0 %}
+                            <a class="btn btn-danger" href="{% url 'eliminarCatalagos' catalago.id %}"> Eliminar </a> 
+                        {% endif %}
+                    </td>
+                    
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        
+        $(document).ready(function(){
+          $('#miLista').change(function(){
+            var seleccionado = $(this).val();
+            var url = "{% url 'listarCatalagos' modelo_nombre='PLACEHOLDER' %}".replace('PLACEHOLDER', seleccionado);
+            window.location.href = url;
+          });
+        });
+
+        
+
+    </script>
+
+{% endblock %}

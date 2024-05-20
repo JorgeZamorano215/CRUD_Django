@@ -1,0 +1,180 @@
+{% extends "home.html" %} 
+
+{% block content %}
+    <style>
+        /* Establece un tamaño máximo de altura para el contenedor de la tabla */
+        .table-container {
+        max-height: 325px; /* ajusta según sea necesario */
+        overflow-y: auto; /* habilita el desplazamiento vertical */
+        }
+    </style>
+    <p></p>
+    <h1> Listado De Usuarios Reistrados </h1>
+    <nav class="navbar bg-body-tertiary fixed-top">
+        <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'Inicio' %}">Inicio</a>
+        
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasNavbar"
+            aria-controls="offcanvasNavbar"
+            aria-label="Toggle navigation"
+        >
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div
+            class="offcanvas offcanvas-end"
+            tabindex="-1"
+            id="offcanvasNavbar"
+            aria-labelledby="offcanvasNavbarLabel"
+        >
+            <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Pc Accesorios</h5>
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="offcanvas"
+                aria-label="Close"
+            ></button>
+            </div>
+            <div class="offcanvas-body">
+            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'Inicio' %}">Inicio</a>
+                    <p></p>
+                    {% if M.Catalago != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarCatalagos' modelo_nombre='cNombre'%}">Catalagos</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Personas != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarPersonas' %}">Personas</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Usuarios != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarUsuarios' %}">Usuarios</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Aplicaciones != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarAplicaciones' %}">Aplicaciones</a>
+                        <p></p>
+                    {% endif %}
+                    {% if M.Accesos != 0 %}
+                        <a class="nav-link active" aria-current="page" href="{% url 'listaraccesos' %}">Accesos</a>
+                        <p></p>
+                    {% endif %}
+                    <a class="nav-link active" aria-current="page" href="{% url 'CambioPassword' %}">Cambiar contraseña</a>
+                    <p></p>
+                    <a class="nav-link active" aria-current="page" href="{% url 'login' %}">Cerrar sesion</a>
+                </li>
+            </ul>
+            </div>
+        </div>
+        </div>
+    </nav>
+
+    {% if mensaje %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert" class="justify-content-center" style="text-align: center;">
+            <strong> {{ mensaje }}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+
+    {% if mensaje2 %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert" class="justify-content-center" style="text-align: center;">
+            <strong> {{ mensaje2 }}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+
+    {% if error2 %}
+        <!-- Modal -->
+        <div class="modal fade show" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="errorModalLabel">Mensaje</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h5>{{error2}}</h5>
+                    </div>
+                    <div class="modal-footer">
+                        <a a class="btn btn-primary" href="{% url 'eliminaraplicaciones' d.id %}"> Aceptar </a> 
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Modal -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script>
+            $(document).ready(function(){
+                $('#errorModal').modal('show');
+            });
+        </script>
+    {% endif %}
+    
+    <h1>Mantenimiento De Aplicaciones </h1>
+    <p></p>
+
+    
+    {% if M.btn_Agregar != 0 %}
+        <div class="row col-12 justify-content-end mb-2 pr-0">
+            <a class="btn btn-success col-md-3" href="{% url 'registrarAplicaciones'%}">Agregar Nuevo</a>
+        </div> 
+    {% endif %}
+
+    <p></p>
+    
+    <div class="table-container">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">CvAplicion</th>
+                    <th scope="col">Descripcion</th>
+                    <th scope="col">Editar</th>
+                    <th scope="col">Eliminar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for aplicacion in aplicaciones %}
+                    <tr {% if aplicacion.Nivel == 1 %}class="table-primary"{% endif %}>
+                        <th scope="row">SCIPA{{ aplicacion.CvAplicaciones }}</th>
+                        <td>{{ aplicacion.DsAplicacion }}</td>
+                        <td>
+                            {% if M.btn_Modificar != 0 %}
+                                <a class="btn btn-warning" href="{% url 'editarAplicaciones' aplicacion.id %}">Editar</a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if M.btn_Eliminar != 0 %}
+                                <a class="btn btn-danger" href="{% url 'validareliminaraplicaciones' aplicacion.CvAplicaciones %}">Eliminar</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p></p>
+    <div class="row col-12 justify-content-end mb-2 pr-0">
+        <a class="btn btn-primary" href="{% url 'Inicio' %}">Salir</a>
+    </div>
+
+    <script>
+        function confirmarEliminacion(usuarioId) {
+            var respuesta = confirm('¿Estás seguro de que deseas eliminar el usuario?');
+    
+            if (respuesta) {
+                // Si el usuario hace clic en "Aceptar", redirige al enlace de eliminación.
+                window.location.href = '{% url 'eliminarusuario' 0 %}'.replace('0', usuarioId);
+            } else {
+                // Si el usuario hace clic en "Cancelar", no hagas nada.
+                // Puedes agregar código adicional aquí si es necesario.
+            }
+        }
+    </script>
+
+{% endblock %}
