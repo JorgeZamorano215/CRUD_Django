@@ -24,7 +24,7 @@ from Views.HomeView import HomeView
 from apps.logeo import views
 
 urlpatterns = [
-    #path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
     path('', HomeView.home, name='home'),
     path('login/', views.inicioSession, name='login'),
     path('CambioPassword/', views.cambioPassword, name='CambioPassword'),
