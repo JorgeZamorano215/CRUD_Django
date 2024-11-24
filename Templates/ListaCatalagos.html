@@ -161,13 +161,7 @@
           });
         });
 
-        var catalago = "agregar";
-        document.getElementById("myInput").addEventListener("input", function(event) {
-            
-            var descripcion = event.target.value;
-            var url = "{% url 'listarCatalagosBuscar' busqueda='PLACEHOLDER' %}".replace('PLACEHOLDER', descripcion);
-            window.location.href = url;
-        });
+        
 
     </script>
 
