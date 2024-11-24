@@ -7,72 +7,17 @@
         max-height: 300px; /* ajusta según sea necesario */
         overflow-y: auto; /* habilita el desplazamiento vertical */
         }
+
+        .table thead th {
+            position: sticky;
+            top: 0;
+            background-color: white; /* Elige un color de fondo para que el encabezado sea visible */
+            z-index: 1;
+        }
     </style>
     <p></p>
     <h1> Listado De Usuarios Reistrados </h1>
-    <nav class="navbar bg-body-tertiary fixed-top">
-        <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'Inicio' %}">Inicio</a>
-        
-        <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="offcanvas"
-            data-bs-target="#offcanvasNavbar"
-            aria-controls="offcanvasNavbar"
-            aria-label="Toggle navigation"
-        >
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div
-            class="offcanvas offcanvas-end"
-            tabindex="-1"
-            id="offcanvasNavbar"
-            aria-labelledby="offcanvasNavbarLabel"
-        >
-            <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Pc Accesorios</h5>
-            <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="offcanvas"
-                aria-label="Close"
-            ></button>
-            </div>
-            <div class="offcanvas-body">
-            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="{% url 'Inicio' %}">Inicio</a>
-                    <p></p>
-                    {% if M.Catalago != 0 %}
-                        <a class="nav-link active" aria-current="page" href="{% url 'listarCatalagos' modelo_nombre='cNombre'%}">Catalagos</a>
-                        <p></p>
-                    {% endif %}
-                    {% if M.Personas != 0 %}
-                        <a class="nav-link active" aria-current="page" href="{% url 'listarPersonas' %}">Personas</a>
-                        <p></p>
-                    {% endif %}
-                    {% if M.Usuarios != 0 %}
-                        <a class="nav-link active" aria-current="page" href="{% url 'listarUsuarios' %}">Usuarios</a>
-                        <p></p>
-                    {% endif %}
-                    {% if M.Aplicaciones != 0 %}
-                        <a class="nav-link active" aria-current="page" href="{% url 'listarAplicaciones' %}">Aplicaciones</a>
-                        <p></p>
-                    {% endif %}
-                    {% if M.Accesos != 0 %}
-                        <a class="nav-link active" aria-current="page" href="{% url 'listaraccesos' %}">Accesos</a>
-                        <p></p>
-                    {% endif %}
-                    <a class="nav-link active" aria-current="page" href="{% url 'CambioPassword' %}">Cambiar contraseña</a>
-                    <p></p>
-                    <a class="nav-link active" aria-current="page" href="{% url 'login' %}">Cerrar sesion</a>
-                </li>
-            </ul>
-            </div>
-        </div>
-        </div>
-    </nav>
+    
     
     {% if mensaje %}
         {% if mensaje == "No se puede realizar completa informacion"%}
@@ -123,7 +68,7 @@
         <div class="row">
             <div class="col-md-4 mx-auto">
                 <div class="form-group">
-                    <input type="text" class="form-control" id="myInput" placeholder="Buscar">
+                    <input type="text" class="form-control" id="busqueda" placeholder="Buscar">
                 </div>
             </div>
         </div>
@@ -134,9 +79,10 @@
     
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
+  
+  
 <div class="table-container">  
-    <table class="table table-striped text-center">
+    <table id="tablaResultados" class="table table-striped text-center">
         <thead>
             <tr>
                 <th scope="col">ID</th>
@@ -165,7 +111,48 @@
     </table>
 </div>
     <script>
+        document.getElementById('busqueda').addEventListener('input', function() {
+            var busqueda = this.value;
         
+            if (busqueda.length > 0) {
+                fetch(`/buscar_catalogo/${busqueda}/`)  // Asegúrate de que esta URL esté bien configurada
+                    .then(response => response.json())
+                    .then(data => {
+                        var tbody = document.getElementById('tablaResultados').querySelector('tbody');
+                        tbody.innerHTML = '';  // Limpiar resultados anteriores
+        
+                        if (data.error) {
+                            tbody.innerHTML = '<tr><td colspan="3">No se encontraron resultados</td></tr>';
+                        } else {
+                            data.detalleCatalogo.forEach(function(item) {
+                                var row = document.createElement('tr');
+                                
+                                // Generar HTML para cada celda
+                                var idCell = `<th scope="row">${item.id}</th>`;
+                                var descripcionCell = `<td>${item.Ds}</td>`;
+                                
+                                // Generar HTML para la columna "Opciones"
+                                var opcionesCell = `<td>`;
+                                if (data.btn_modificar) {
+                                    opcionesCell += `<a class="btn btn-warning" href="/editarCatalagos/agregar/${item.id}">Editar</a> `;
+                                }
+                                if (data.btn_eliminar) {
+                                    opcionesCell += `<a class="btn btn-danger" href="/eliminarCatalagos/${item.id}">Eliminar</a>`;
+                                }
+                                opcionesCell += `</td>`;
+        
+                                row.innerHTML = idCell + descripcionCell + opcionesCell;
+                                tbody.appendChild(row);
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            } else {
+                // Si el campo de búsqueda está vacío, recargar la página actual
+                window.location.reload();  // Esto recargará la página actual
+            }
+        });
+
         $(document).ready(function(){
           $('#miLista').change(function(){
             var seleccionado = $(this).val();

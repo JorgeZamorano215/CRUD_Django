@@ -4,6 +4,13 @@ from django.shortcuts import render
 from Models.Alumno.forms import FormularioAlumno
 from Models.Alumno.models import Alumno
 
+    # views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+from .forms import SuperuserCreationForm
+
+
 class FormularioAlumnoView(HttpRequest):
     
     def index(request):
@@ -39,3 +46,17 @@ class FormularioAlumnoView(HttpRequest):
         alumno.delete()
         alumnos = Alumno.objects.all()
         return render(request, "ListaAlumnos.html", {"alumnos":alumnos, "mensaje":"OK"})
+    
+    def create_superuser_view(request):
+        if request.method == 'POST':
+            form = SuperuserCreationForm(request.POST)
+            if form.is_valid():
+                user = form.save(commit=False)
+                user.is_superuser = True
+                user.is_staff = True
+                user.password = make_password(form.cleaned_data['password'])  # Hashear la contraseña
+                user.save()
+                return redirect('crear_superusuario') # Redirigir a una página de éxito o de inicio de sesión
+        else:
+            form = SuperuserCreationForm()
+        return render(request, 'create_superuser.html', {'form': form})

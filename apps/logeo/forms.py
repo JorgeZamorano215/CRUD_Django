@@ -17,7 +17,12 @@ from apps.logeo.models import cTpPerson
 from apps.logeo.models import cTrabajo
 from apps.logeo.models import cAficion
 
+from apps.logeo.models import cTpTransaccion
+from apps.logeo.models import cConcepto
+
 from apps.logeo.models import mAplicaciones
+
+from apps.logeo.models import mProductos
 
 
 class FormularioRegistrarUsuario(forms.ModelForm):
@@ -213,6 +218,23 @@ class FormularioCiudad(forms.ModelForm):
         labels = {
             'Ds': 'Descripcion',
         }
+
+class FormularioTpTransaccion(forms.ModelForm):
+    class Meta:
+        model = cTpTransaccion
+        fields = ['Ds']
+        
+        labels = {
+            'Ds': 'Descripcion',
+        }
+class FormularioConcepto(forms.ModelForm):
+    class Meta:
+        model = cConcepto
+        fields = ['Ds']
+        
+        labels = {
+            'Ds': 'Descripcion',
+        }
         
 class FormularioRegistrarAplicaciones(forms.ModelForm):
     class Meta:
@@ -231,4 +253,22 @@ class FormularioModificarAplicaciones(forms.ModelForm):
         labels = {
             'DsAplicacion': 'Descripcion de la Aplicacion',
         }
+        
+class FormularioProductos(forms.ModelForm):
+    class Meta:
+        model = mProductos
+        fields = ['Codigo', 'Producto', 'PreCompra', 'PreVenta', 'FechaCaducidad', 'Stock', 'MinStock']
+        widgets = {
+            'FechaCaducidad': forms.DateInput(attrs={'type': 'date'})
+        }
+        labels = {
+            'Codigo': 'Codigo del Producto',
+            'Producto': 'Nombre del Producto',
+            'PreCompra': 'Precio de Compra',
+            'PreVenta': 'Precio de Venta',
+            'FechaCaducidad': 'Fecha de Caducidad',
+            'Stock': 'Cantidad',
+            'MinStock': 'Stock',
+        }
+
         

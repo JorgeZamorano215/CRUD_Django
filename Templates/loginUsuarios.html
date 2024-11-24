@@ -1,6 +1,95 @@
 {% extends "Plantilla.html" %} 
 
 {% block content %}
+    <style>
+       
+        body {
+            margin: 0;
+            padding: 0;
+            background: url("https://raw.githubusercontent.com/JorgeZamorano215/Imagenes/main/bgRecortadoEAV.png") no-repeat center top;
+            background-size: cover;
+            font-family: sans-serif;
+            height: 100vh;
+          }
+          
+          .login-box {
+            width: 320px;
+            height: 420px;
+            background: #000;
+            color: #fff;
+            top: 50%;
+            left: 50%;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            box-sizing: border-box;
+            padding: 70px 30px;
+          }
+          
+          .login-box .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            position: absolute;
+            top: -195px;
+            left: calc(15% - 50px);
+          }
+          
+          .login-box h1 {
+            margin: 0;
+            padding: 0 0 10px;
+            text-align: center;
+            font-size: 22px;
+          }
+          
+          .login-box label {
+            margin: 0;
+            padding: 0;
+            font-weight: bold;
+            display: block;
+          }
+          
+          .login-box input {
+            width: 100%;
+            margin-bottom: 20px;
+          }
+          
+          .login-box input[type="text"], .login-box input[type="password"] {
+            border: none;
+            border-bottom: 1px solid #fff;
+            background: transparent;
+            outline: none;
+            height: 40px;
+            color: #fff;
+            font-size: 16px;
+          }
+          
+          .login-box input[type="submit"] {
+            border: none;
+            outline: none;
+            height: 40px;
+            background: #b80f22;
+            color: #fff;
+            font-size: 18px;
+            border-radius: 20px;
+          }
+          
+          .login-box input[type="submit"]:hover {
+            cursor: pointer;
+            background: #ffc107;
+            color: #000;
+          }
+          
+          .login-box a {
+            text-decoration: none;
+            font-size: 12px;
+            line-height: 20px;
+            color: darkgrey;
+          }
+          
+          .login-box a:hover {
+            color: #fff;
+          }
+    </style>
 
     {% if error %}
         <!-- Modal -->
@@ -28,20 +117,25 @@
             });
         </script>
     {% endif %}
-    
-    <p></p>
-    <h1 style="text-align: center;">Pc Accesorios</h1>
-    <div class="d-flex align-items-center justify-content-center" style="height: 30vh;">   
-        <form method="POST" class="row g-2" style="width: 320px; height: 210px;" >
-            {% csrf_token %} 
+
+    <div class="login-box">
+        <!--
+            -->
             
-            {{ form }}
-            
-            <button type="submit" class="btn btn-outline-primary">Iniciar Session</button>
-            <input class="btn btn-outline-danger" type="reset" value="Cancelar">
-        </form>   
+        <img src="https://raw.githubusercontent.com/JorgeZamorano215/Imagenes/main/logoAV.png" class="avatar"  style="width: 335px; height: auto;">
+        <h1>Bienvenido</h1>
+        <form method="POST">
+            {% csrf_token %}
+          <!-- USERNAME INPUT -->
+          <label for="username">Nombre de usuario</label>
+          <input type="text" name="Login" placeholder="Ingresa el nombre del usuario">
+          <!-- PASSWORD INPUT -->
+          <label for="password">Contraseña</label>
+          <input type="password" name="Password" placeholder="Introduzca la contraseña">
+          <input type="submit" value="Inicia sesion">
+        </form>
     </div>
-    
+
     <!-- Bootstrap Bundle con Popper.js (requerido para la funcionalidad modal) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 

@@ -1,0 +1,684 @@
+{% extends "home.html" %} 
+
+{% block content %}
+    <style>
+        .modal-content {
+            transform: scale(0.7);
+            opacity: 0;
+            transition: all 0.4s ease-in-out;
+        }
+        
+        .modal.show .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Modal con estilo y animación de diablito -->
+    <div class="modal fade" id="almacenModal" tabindex="-1" aria-labelledby="almacenModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow-lg p-3 mb-5 bg-body-tertiary rounded" style="transition: all 0.5s ease;">
+                <div class="modal-header">
+                    <h5 class="modal-title text-success" id="almacenModalLabel">¡Almacenaje Exitoso!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <!-- Icono de un diablito/montacargas de FontAwesome -->
+                    <i class="fas fa-dolly fa-3x" style="color: #28a745; margin-bottom: 20px;"></i>
+                    <p class="text-muted">Los productos han sido almacenados correctamente.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success w-100" id="confirmarAlmacenajeBtn">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <p></P>
+    <p></P>
+    <p></P>
+    <h1>Venta</h1>
+    <h1>Recepcion De Pedido</h1>
+    <div class="conteiner-fluid row">
+        <form class="col-12 p-4" method="POST" action="{% url 'procesar_recepcion' %}">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-sm-3">
+                    <label for="lang">Empleado</label>
+                    <select name="Empleado" id="id_Empleado" class="form-control">
+                        <option value="{{r.CvPerson}}">{{r.NombreEmpleado}}</option>
+                    </select>
+                </div>
+            </div>
+            <p></p>
+            <div class="row">
+                <div class="col-sm-3">
+                    <label for="lang">Codigo Del Pedido</label>
+                    <select name="Pedido" id="id_Pedido" class="form-control">
+                        <option value=""></option>
+                        {% for pedido in pedidos %}
+                            <option value="{{ pedido.id }}">
+                                {{ pedido.id }}._{{ pedido.NombreProveedor }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <p></p>
+            <div class="row">
+                <div class="col-sm-3">
+                    <label for="lang">Proveedor</label>
+                    <input type="text" name="id_Proveedor" required="" id="id_Proveedor"  class="form-control">
+                    <input type="hidden" name="id_idProveedor" required="" id="id_idProveedor"  class="form-control">
+                </div>
+            </div>
+            <p></p>
+            
+            <p></p>
+            <div class="row">
+                <div class="col-sm-2">
+                    <label for="id_Fec">Fecha de Pedido</label>
+                    <input type="date" name="FecPed" required="" id="id_FecPed"  class="form-control" readonly>
+                </div>
+                <div class="col-sm-2">
+                    <label for="id_Fec">Fecha de Entrega</label>
+                    <input type="date" name="FecEnt" min="{{FecPed}}" required="" id="id_FecEnt"  class="form-control" readonly>
+                </div>
+                <div class="col-sm-2">
+                    <label for="id_Anticipo">Antipo</label>
+                    <input type="number" readonly class="form-control" id="id_Anticipo" value="0.00">
+                </div>
+                <div class="col-sm-2">
+                    <input type="number" name="Capital" value="{{datosCajaGrande.Actual}}" step="any" required="" id="id_Capital" class="form-control" style="display: none;">
+                </div>
+            </div>
+            <p></p>
+            <div class="row">
+                <div class="col-sm-5">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">Codigo</th>
+                                <th scope="col">Producto</th>
+                                <th scope="col">Precio P.</th>
+                                <th scope="col">Cantidad P.</th>
+                                <th scope="col">Precio R.</th>
+                                <th scope="col">Cantidad R.</th>
+                                <th scope="col">Precio V.</th>
+                                <th scope="col">Total</th>
+                                <th scope="col">Observeciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Filas generadas dinámicamente aparecerán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p></p>
+            <div class="row">
+                <div class="col-sm-4">
+                    <label for="id_ObservecionG">Observacion General</label>
+                    <input type="text" name="ObservecionG" required="" id="id_ObservecionG"  class="form-control">
+                </div>
+            </div>            
+
+            <p></p>
+            <p></p>
+            <div class="container">
+                <p></p>    
+                <div class="form-group row">
+                    <label for="Id_Sub" class="col-sm-1 col-form-label">SUBTOTAL</label>
+                    <div class="col-sm-2">
+                        <input type="number" readonly class="form-control-plaintext" id="Id_Sub" value="0.00">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="id_Iva" class="col-sm-1 col-form-label">IVA(16)</label>
+                    <div class="col-sm-2">
+                        <input type="number" readonly class="form-control-plaintext" id="id_Iva" value="0.00">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="id_Total" class="col-sm-1 col-form-label">TOTAL</label>
+                    <div class="col-sm-2">
+                        <!--<input type="number" name="Efectivo" step="any" required="" id="id_Total" class="form-control">-->
+                        <input type="number" readonly class="form-control-plaintext" id="id_Total" value="0.00">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="id_Compra" class="col-sm-1 col-form-label">COMPRA</label>
+                    <div class="col-sm-2">
+                        <input type="number" readonly class="form-control-plaintext" id="id_Compra" value="0.00">
+                    </div>
+                </div>
+        
+                
+                <button type="button" class="btn btn-success" id="pedirBtn">
+                    <i class="fas fa-dolly"></i> Almacenar
+                </button>
+        
+            </div>
+        </form>
+    </div>
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    
+
+    <div class="row col-12 justify-content-end mb-2 pr-0">
+        <a class="btn btn-primary" href="{% url 'Inicio' %}">Salir</a>
+    </div>
+
+    <script>
+        // Función que activa el modal de almacenaje
+        function mostrarModal() {
+            // Cambiar el ID del modal a 'almacenModal' en lugar de 'ventaModal'
+            var modal = new bootstrap.Modal(document.getElementById('almacenModal'));
+            modal.show();
+
+            // Agregamos un listener al botón "Aceptar"
+            document.getElementById('confirmarAlmacenajeBtn').addEventListener('click', function() {
+                // Aquí puedes redirigir o limpiar la página según sea necesario
+                window.location.href = "{% url 'RecepcionPedidos' %}";  // Redirige a la página de almacenaje
+            });
+        }
+
+        function ValidacionCompra() {
+            
+            const capital = parseFloat(document.getElementById('id_Capital').value) || 0;
+            const total = parseFloat(document.getElementById('id_Compra').value) || 0;
+            
+            let validacion = 1;  // Usar `let` ya que el valor puede cambiar
+
+            if (total > capital) {
+                alert("La compra es mayor que con lo que se cuenta de vuelve algunos productos");
+                validacion = 0;
+            }
+
+            return validacion;
+        }
+
+        document.getElementById('id_Pedido').addEventListener('change', function() {
+            const pedidoId = this.value;
+        
+            if (pedidoId) {
+                // Limpiar la tabla antes de agregar nuevas filas
+                const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = '';
+
+                fetch(`/api/CodigoPedidoRecepcion/${pedidoId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const { pedidoDatos, pedidoDetalle } = data;
+                        
+                        document.getElementById('id_idProveedor').value = pedidoDatos.idProveedor;
+                        document.getElementById('id_Proveedor').value = pedidoDatos.Proveedor;
+                        document.getElementById('id_FecPed').value = pedidoDatos.FechaPedido;
+                        document.getElementById('id_FecEnt').value = pedidoDatos.FechaEntrega;
+                        document.getElementById('id_Anticipo').value = pedidoDatos.Anticipo.toFixed(2);
+        
+                        pedidoDetalle.forEach(producto => {
+                            // Obtener los valores de los campos de entrada
+                            const codigo = producto.Codigo;
+                            const descripcion = producto.Descripcion;
+                            const precio = producto.PrecioPedido;
+                            const cantidad = producto.Cantidad;
+                            const precioR = producto.PrecioPedido;
+                            const cantidadR = producto.Cantidad;
+                            const precioV = producto.PrecioVenta;
+                            const total = precioR * cantidadR;
+                            const observaciones = '';
+        
+                            // Crear una nueva fila en la tabla
+                            const newRow = document.createElement('tr');
+                            newRow.innerHTML = `
+                                <td>${codigo}</td>
+                                <td>${descripcion}</td>
+                                <td>${precio.toFixed(2)}</td>
+                                <td>${cantidad}</td>
+                                <td><input type="number" value="${precioR.toFixed(2)}" inputmode="decimal" pattern="\\d+(\\.\\d{1,2})?" step="0.01" class="precioR" style="width: 130%; box-sizing: border-box;"></td>
+                                <td><input type="number" value="${cantidadR}" step="1" inputmode="numeric" pattern="[0-9]*" class="cantidadR" style="width: 100%; box-sizing: border-box;"></td>
+                                <td><input type="number" value="${precioV.toFixed(2)}" inputmode="decimal" pattern="\\d+(\\.\\d{1,2})?" step="0.01" class="precioV" style="width: 130%; box-sizing: border-box;"></td>
+                                <td class="total">${total.toFixed(2)}</td>
+                                <td><input type="text" value="${observaciones}" class="observacion"></td>
+                            `;
+        
+                            // Agregar la nueva fila al cuerpo de la tabla
+                            document.getElementById('tableBody').appendChild(newRow);
+        
+                            // Añadir event listeners para recalcular los totales al modificar los inputs
+                            newRow.querySelector('.precioR').addEventListener('input', recalcularFila);
+                            newRow.querySelector('.cantidadR').addEventListener('input', recalcularFila);
+                            newRow.querySelector('.precioV').addEventListener('input', recalcularFila);
+                        });
+        
+                        calcularTotales();
+                        
+                    })
+                    .catch(error => console.error('Error al obtener el pedido:', error));
+            }
+        });
+        
+        function recalcularFila(event) {
+            const fila = event.target.closest('tr');
+            const precioR = parseFloat(fila.querySelector('.precioR').value) || 0;
+            const cantidadR = parseFloat(fila.querySelector('.cantidadR').value) || 0;
+            const precioV = parseFloat(fila.querySelector('.precioV').value) || 0;
+        
+            const total = precioR * cantidadR;
+            fila.querySelector('.total').textContent = total.toFixed(2);
+        
+            calcularTotales();
+        }
+        function calcularTotales() {
+            // Obtener Anticipo
+            const anticipo = parseFloat(document.getElementById('id_Anticipo').value) || 0;
+
+            // Obtener todas las filas de la tabla
+            const filas = document.querySelectorAll("#tableBody tr");
+        
+            // Inicializar variables para subtotal, IVA y total
+            let subtotal = 0;
+        
+            // Iterar sobre todas las filas de la tabla
+            filas.forEach(fila => {
+                // Obtener el total de la fila y sumarlo al subtotal
+                subtotal += parseFloat(fila.querySelector(".total").textContent) || 0;
+            });
+        
+            // Calcular el IVA (16% del subtotal)
+            const iva = subtotal * 0.16;
+        
+            // Calcular el total sumando el subtotal y el IVA
+            const total = subtotal + iva;
+            
+            // Caluclar la compra
+            const compra = total - anticipo;
+
+            // Actualizar los valores en los campos de subtotal, IVA y total
+            document.getElementById("Id_Sub").value = subtotal.toFixed(2);
+            document.getElementById("id_Iva").value = iva.toFixed(2);
+            document.getElementById("id_Total").value = total.toFixed(2);
+            document.getElementById("id_Compra").value = compra.toFixed(2);
+        }
+        /*
+        function calcularTotales() {
+            // Obtener todas las filas de la tabla
+            const filas = document.querySelectorAll("#tableBody tr");
+        
+            // Inicializar variables para subtotal, IVA y total
+            let subtotal = 0;
+        
+            // Iterar sobre todas las filas de la tabla
+            filas.forEach(fila => {
+                // Obtener el total de la fila y sumarlo al subtotal
+                subtotal += parseFloat(fila.querySelector(".total").textContent) || 0;
+            });
+        
+            // Calcular el IVA (16% del subtotal)
+            const iva = subtotal * 0.16;
+        
+            // Calcular el total sumando el subtotal y el IVA
+            const total = subtotal + iva;
+        
+            // Actualizar los valores en los campos de subtotal, IVA y total
+            document.getElementById("Id_Sub").value = subtotal.toFixed(2);
+            document.getElementById("id_Iva").value = iva.toFixed(2);
+            document.getElementById("id_Total").value = total.toFixed(2);
+        }
+        */
+
+        document.getElementById('pedirBtn').addEventListener('click', almacenar);
+
+        function almacenar() {
+            if (ValidacionCompra() === 0){
+                ValidacionCompra()
+            }else{
+                
+                // Capturar los datos de las tablas
+                const datosMaestra = capturarDatosMaestra();
+                const datosTransaccional = capturarDatosTransaccional();
+
+                console.log('Datos Maestra:', datosMaestra);
+                console.log('Datos Transaccional:', datosTransaccional);
+                
+                // Obtener el CSRF token
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                // Enviar los datos al backend
+                fetch('/realizarRecepcion/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({
+                        maestra: datosMaestra,
+                        transaccional: datosTransaccional
+                    })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        //alert('Pedido Recepcionado correctamente');
+                        // Aquí puedes redirigir a una página de confirmación o hacer cualquier otra acción
+                        mostrarModal();
+                    } else {
+                        alert('Hubo un error al procesar la Recepcion');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al enviar datos de recepcion:', error);
+                    alert('Hubo un error al procesar la recepcion');
+                });
+                
+            }
+            
+        }
+
+        function capturarDatosMaestra() {
+            // Obtener las fechas y convertirlas al formato correcto
+            const fechaPedido = new Date(document.getElementById('id_FecPed').value);
+            const fechaEntrega = new Date(document.getElementById('id_FecEnt').value);
+        
+            const formatDate = (date) => {
+                // Usar métodos locales para obtener la fecha correcta
+                let day = ("0" + date.getUTCDate()).slice(-2);
+                let month = ("0" + (date.getUTCMonth() + 1)).slice(-2);
+                let year = date.getUTCFullYear();
+                return `${year}-${month}-${day}`;
+            };
+        
+            const datosMaestra = {
+                CvPedido: parseInt(document.getElementById('id_Pedido').value),
+                Empleado: parseInt(document.getElementById('id_Empleado').value),
+                Proveedor: parseInt(document.getElementById('id_idProveedor').value),
+                FechaPedido: formatDate(fechaPedido),
+                FechaEntrega: formatDate(fechaEntrega),
+                SubTotal: parseFloat(document.getElementById('Id_Sub').value),
+                Impuesto: parseFloat(document.getElementById('id_Iva').value),
+                Total: parseFloat(document.getElementById('id_Total').value),
+                Compra: parseFloat(document.getElementById('id_Compra').value),
+                Observacion: document.getElementById('id_ObservecionG').value
+            };
+            return datosMaestra;
+        }
+
+        function capturarDatosTransaccional() {
+            const filas = document.querySelectorAll("#tableBody tr");
+            const datosTransaccional = [];
+        
+            filas.forEach(fila => {
+                const codigo = fila.cells[0].innerText;
+                const precio = parseFloat(fila.querySelector('.precioR').value) || 0;
+                const cantidad = parseInt(fila.querySelector('.cantidadR').value) || 0;
+                const precioV = parseFloat(fila.querySelector('.precioV').value) || 0;
+                const subTotal = parseFloat(fila.cells[7].innerText);
+                const observacion = fila.querySelector('.observacion').value;
+        
+                if (isNaN(precio) || isNaN(cantidad) || isNaN(precioV)) {
+                    console.error('Error en los datos de la fila:', {
+                        Codigo: codigo,
+                        PrecioRecepcion: fila.querySelector('.precioR').value,
+                        Cantidad: fila.querySelector('.cantidadR').value,
+                        PrecioVenta: fila.querySelector('.precioV').value,
+                        SubTot: subTotal,
+                        Observacion: fila.querySelector('.observacion').value
+                    });
+                } else {
+                    const datosProducto = {
+                        Codigo: codigo,
+                        PrecioRecepcion: precio,
+                        Cantidad: cantidad,
+                        PrecioVenta: precioV,
+                        SubTot: subTotal,
+                        Observacion: observacion
+                    };
+        
+                    datosTransaccional.push(datosProducto);
+                }
+            });
+        
+            //console.log("Datos Transaccional:", datosTransaccional);
+            return datosTransaccional;
+        }
+        //
+        /*
+        document.getElementById('id_Proveedores').addEventListener('change', function() {
+            const proveedorId = this.value;
+            const productosSelect = document.getElementById('id_Productos');
+            productosSelect.innerHTML = '<option value=""></option>'; // Clear current options
+        
+            if (proveedorId) {
+                fetch(`/api/proveedor_productos/${proveedorId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const { productos_poco_stock, productos_normal_stock } = data;
+        
+                        productos_poco_stock.forEach(producto => {
+                            const option = document.createElement('option');
+                            option.value = producto.nombre;
+                            option.text = `${producto.nombre} (poco stock)`;
+                            productosSelect.appendChild(option);
+                        });
+        
+                        productos_normal_stock.forEach(producto => {
+                            const option = document.createElement('option');
+                            option.value = producto.nombre;
+                            option.text = producto.nombre;
+                            productosSelect.appendChild(option);
+                        });
+
+                        document.getElementById('id_PreCompra').value = '';
+                    })
+                    .catch(error => console.error('Error al obtener los productos:', error));
+            }
+        });
+
+
+        document.getElementById('id_Productos').addEventListener('change', function() {
+            const ProductoDescripcion = this.value;
+        
+            if (ProductoDescripcion) {
+                fetch(`/api/precioCompra_producto/${ProductoDescripcion}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('id_PreCompra').value = data.precio;
+                        document.getElementById('id_Codigo').value = data.codigo;
+                        document.getElementById('id_Stock').focus();
+                    })
+                    .catch(error => console.error('Error al consultar precio compra:', error));
+            }
+            
+        });
+        
+        document.getElementById('id_Stock').addEventListener('keypress', function(event) {
+            console.log('Tecla presionada');
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                
+                // Obtener los valores de los campos de entrada
+                const codigo = document.getElementById('id_Codigo').value;
+                const producto = document.getElementById('id_Productos').value;
+                const cantidad = parseFloat(document.getElementById('id_Stock').value);
+                const precio = parseFloat(document.getElementById('id_PreCompra').value);
+                
+                // Calcular el total
+                const total = cantidad * precio;
+    
+                // Crear una nueva fila en la tabla
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${codigo}</td>
+                    <td>${producto}</td>
+                    <td>${precio.toFixed(2)}</td>
+                    <td>${cantidad}</td>
+                    <td>${total.toFixed(2)}</td>
+                `;
+    
+                // Agregar la nueva fila al cuerpo de la tabla
+                document.getElementById('tableBody').appendChild(newRow);
+    
+                // Limpiar los campos de entrada
+                document.getElementById('id_Stock').value = '';
+                document.getElementById('id_PreCompra').value = '';
+    
+                
+                calcularTotales();
+
+                document.getElementById('id_Productos').selectedIndex = 0;
+                document.getElementById('id_Productos').focus();
+                
+            }
+        });
+        
+        function calcularTotales() {
+            // Obtener todas las filas de la tabla
+            const filas = document.querySelectorAll("#tableBody tr");
+    
+            // Inicializar variables para subtotal, IVA y total
+            let subtotal = 0;
+    
+            // Iterar sobre todas las filas de la tabla
+            filas.forEach(fila => {
+                // Obtener el total de la fila y sumarlo al subtotal
+                subtotal += parseFloat(fila.querySelector("td:nth-child(8)").textContent);
+            });
+    
+            // Calcular el IVA (16% del subtotal)
+            const iva = subtotal * 0.16;
+    
+            // Calcular el total sumando el subtotal y el IVA
+            const total = subtotal + iva;
+    
+            // Actualizar los valores en los campos de subtotal, IVA y total
+            document.getElementById("Id_Sub").value = subtotal.toFixed(2);
+            document.getElementById("id_Iva").value = iva.toFixed(2);
+            document.getElementById("id_Total").value = total.toFixed(2);
+
+        }
+        
+        document.getElementById('pedirBtn').addEventListener('click', pedir);
+
+        function pedir() {
+            // Capturar los datos de las tablas
+            const datosMaestra = capturarDatosMaestra();
+            const datosTransaccional = capturarDatosTransaccional();
+
+            console.log('Datos Maestra:', datosMaestra);
+            console.log('Datos Transaccional:', datosTransaccional);
+
+            // Obtener el CSRF token
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            // Enviar los datos al backend
+            fetch('/realizarpedido/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    maestra: datosMaestra,
+                    transaccional: datosTransaccional
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Peido realizado correctamente');
+                    // Aquí puedes redirigir a una página de confirmación o hacer cualquier otra acción
+                } else {
+                    alert('Hubo un error al procesar el pedido');
+                }
+            })
+            .catch(error => {
+                console.error('Error al enviar datos de pedido:', error);
+                alert('Hubo un error al procesar el pedido');
+            });
+        }
+
+        function capturarDatosMaestra() {
+            // Obtener las fechas y convertirlas al formato correcto
+            const fechaPedido = new Date(document.getElementById('id_FecPed').value);
+            const fechaEntrega = new Date(document.getElementById('id_FecEnt').value);
+        
+            const formatDate = (date) => {
+                // Usar métodos locales para obtener la fecha correcta
+                let day = ("0" + date.getUTCDate()).slice(-2);
+                let month = ("0" + (date.getUTCMonth() + 1)).slice(-2);
+                let year = date.getUTCFullYear();
+                return `${year}-${month}-${day}`;
+            };
+        
+            const datosMaestra = {
+                Empleado: parseInt(document.getElementById('id_Empleado').value),
+                Proveedor: parseInt(document.getElementById('id_Proveedores').value),
+                FechaPedido: formatDate(fechaPedido),
+                FechaEntrega: formatDate(fechaEntrega),
+                SubTotal: parseFloat(document.getElementById('Id_Sub').value),
+                Impuesto: parseFloat(document.getElementById('id_Iva').value),
+                Total: parseFloat(document.getElementById('id_Total').value),
+                Pagado: document.getElementById('id_Pagado').checked
+            };
+            return datosMaestra;
+        }
+
+        function capturarDatosTransaccional() {
+            const filas = document.querySelectorAll("#tableBody tr");
+            const datosTransaccional = [];
+
+            filas.forEach(fila => {
+                const codigo = fila.cells[0].innerText;
+                const precio = parseFloat(fila.cells[2].innerText);
+                const cantidad = parseInt(fila.cells[3].innerText);
+                const subTotal = parseFloat(fila.cells[4].innerText);
+
+                const datosProducto = {
+                    Codigo: codigo,
+                    PrecioPedido: precio,
+                    Cantidad: cantidad,
+                    SubTot: subTotal
+                };
+
+                datosTransaccional.push(datosProducto);
+            });
+
+            return datosTransaccional;
+        }
+        
+
+
+        document.getElementById('id_Codigo').addEventListener('blur', function() {
+            const codigo = document.getElementById('id_Codigo').value;
+            if (codigo) {
+                fetch(`/api/productos/${codigo}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('id_Producto').value = data.descripcion;
+                        document.getElementById('id_PreVenta').value = data.precio;
+                        document.getElementById('id_StockMin').value = data.stock;
+    
+                        document.getElementById('id_Stock').focus();
+                    })
+                    .catch(error => console.error('Error al obtener los datos del producto:', error));
+                    //alert('El codigo no le perteneze a ningun Producto');
+            }
+        });
+    
+    
+        
+    
+        
+    
+        // Evento para calcular totales cada vez que se ingrese algo en la tabla
+        document.getElementById("tableBody").addEventListener("input", calcularTotales);
+        */
+    </script>
+
+{% endblock %}

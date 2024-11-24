@@ -11,6 +11,13 @@ from django.db.models import Q
 
 from django.db.models import Max
 
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+from django.db.models import F
+
 from apps.logeo.forms import FormularioLogeoUsuario
 from apps.logeo.forms import CambioPassword
 from apps.logeo.forms import FormularioRegistrarUsuario
@@ -48,6 +55,8 @@ from apps.logeo.forms import FormularioColonia
 from apps.logeo.forms import FormularioCiudad
 from apps.logeo.forms import FormularioMunicipio
 from apps.logeo.forms import FormularioCalle
+from apps.logeo.forms import FormularioTpTransaccion
+from apps.logeo.forms import FormularioConcepto
 
 from apps.logeo.models import mAplicaciones
 from apps.logeo.forms import FormularioRegistrarAplicaciones
@@ -55,6 +64,30 @@ from apps.logeo.forms import FormularioModificarAplicaciones
 
 from apps.logeo.models import mAccesos
 from apps.logeo.models import mRegistro
+
+from apps.logeo.models import mProductos
+from apps.logeo.forms import FormularioProductos
+
+from apps.logeo.models import mVentas
+from apps.logeo.models import tVentas
+
+from apps.logeo.models import mPedidos
+from apps.logeo.models import tPedidos
+
+from apps.logeo.models import mRecepcion
+from apps.logeo.models import tRecepcion
+
+from apps.logeo.models import listaFaltantes
+
+from apps.logeo.models import mCajaChica
+
+from apps.logeo.models import cTpTransaccion
+from apps.logeo.models import cConcepto
+from apps.logeo.models import mCajaGrande
+
+from apps.logeo.models import mCorteCaja
+
+from django.db.models import Sum
 
 # Create your views here.
 CvPerson=0
@@ -67,9 +100,11 @@ MensajePersonas = ''
 MensajeCatalagos = ''
 MensajeAplicaciones = ''
 MensajeAccesos = ''
+MensajeProductos = ''
+MensajeVenta = ''
+
 Cvp = 0
 NomCat = ''
-
 def inicioSession(request):
     usuario = FormularioLogeoUsuario()
     if request.method == 'GET':
@@ -156,13 +191,21 @@ def cambioPassword(request):
     
 def home(request):
     r = mRegistro.objects.latest('id')
-    Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
-    Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
-    Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
-    Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M =  mAccesos.objects.all()
+    M.Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
+    M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
+    M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
+    M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
-    return render(request, 'home.html', {"Catalago":Catalago, "Personas":Personas, "Usuarios":Usuarios, "Aplicaciones":Aplicaciones, "Accesos":Accesos})
+    return render(request, 'home.html', {"M":M})
 
 def Menu(request):
     r = mRegistro.objects.latest('id')
@@ -189,6 +232,13 @@ def inicio(request):
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
     M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
     return render(request, "inicio.html", {"registro":registro, "M":M})
 
@@ -214,7 +264,14 @@ def listar_usuarios(request):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()    
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=310000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=320000).count()
@@ -249,7 +306,14 @@ def registrar_usuarios(request):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()    
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=310000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=320000).count()
@@ -314,7 +378,14 @@ def editar_usuarios(request, id_usuario):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()    
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=310000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=320000).count()
@@ -354,7 +425,14 @@ def aplicar_editar_usuarios(request, id_usuario):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()    
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=310000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=320000).count()
@@ -453,7 +531,14 @@ def validar_eliminar_usuarios(request, id_usuario):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()   
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=310000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=320000).count()
@@ -497,7 +582,33 @@ def signup(request):
                     "error": 'username already exists'            
                 })
         return HttpResponse('Password do not match')
-            
+
+def buscar_catalogo(request, busqueda):
+    global NomCat
+    modelo = globals()[NomCat]
+    
+    r = mRegistro.objects.latest('id')
+    permisos = {
+        'btn_Agregar': mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=110000).count(),
+        'btn_Eliminar': mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=120000).count(),
+        'btn_Modificar': mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=130000).count()
+    }
+
+    catalogos = modelo.objects.filter(Ds__icontains=busqueda).values('id', 'Ds')
+
+    if not catalogos.exists():
+        return JsonResponse({'error': 'Catalogo not found'}, status=404)
+    
+    response_data = {
+        'detalleCatalogo': list(catalogos),
+        'btn_agregar': permisos['btn_Agregar'] > 0,
+        'btn_eliminar': permisos['btn_Eliminar'] > 0,
+        'btn_modificar': permisos['btn_Modificar'] > 0
+    }
+    
+    return JsonResponse(response_data)
+
+
 def listar_catalagos_buscar(request,busqueda):
     global NomCat
     modelo = globals()[NomCat]
@@ -518,7 +629,14 @@ def listar_catalagos_buscar(request,busqueda):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()   
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=110000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=120000).count()
@@ -547,13 +665,45 @@ def listar_catalagos(request,modelo_nombre):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()   
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=110000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=120000).count()
     M.btn_Modificar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=130000).count() 
     
     return render(request, "Listacatalagos.html", {"titulo":titulo.Nombre, "agregar":modelo_nombre, "catalagos":catalagos, "listas":listas, "mensaje":MensajeCatalagos2, "M":M}) 
+
+def listar_catalagos_vacio(request):
+    listas = cCatalagos.objects.all()
+    
+    r = mRegistro.objects.latest('id')
+    M =  mAccesos.objects.all()
+    
+    M.Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
+    M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
+    M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
+    M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()   
+    
+    M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=110000).count()
+    M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=120000).count()
+    M.btn_Modificar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=130000).count() 
+    
+    return render(request, "ListaCatalagosVacio.html", {"listas":listas, "M":M}) 
 
 def registrar_catalagos(request, modelo_nombre):
     if modelo_nombre == "cNombre" or modelo_nombre == "cApellido":
@@ -576,6 +726,10 @@ def registrar_catalagos(request, modelo_nombre):
         catalago = FormularioMunicipio()
     if modelo_nombre == "cCalle":
         catalago = FormularioCalle()
+    if modelo_nombre == "cTpTransaccion":
+        catalago = FormularioTpTransaccion()
+    if modelo_nombre == "cConcepto":
+        catalago = FormularioConcepto()
 
     modelo = globals()[modelo_nombre]
     catalagos = modelo.objects.all()
@@ -590,7 +744,14 @@ def registrar_catalagos(request, modelo_nombre):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()    
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=110000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=120000).count()
@@ -623,6 +784,10 @@ def registrar_catalagos(request, modelo_nombre):
                 c = FormularioMunicipio(request.POST)
             if modelo_nombre == "cCalle":
                 c = FormularioCalle(request.POST)
+            if modelo_nombre == "cTpTransaccion":
+                c = FormularioTpTransaccion(request.POST)
+            if modelo_nombre == "cConcepto":
+                c = FormularioConcepto(request.POST)
             
             if c.is_valid():
                 
@@ -663,6 +828,10 @@ def editar_catalagos(request, modelo_nombre, id_catalago):
         form = FormularioMunicipio(instance=catalago)
     if modelo_nombre == "cCalle":
         form = FormularioCalle(instance=catalago)
+    if modelo_nombre == "cTpTransaccion":
+        form = FormularioTpTransaccion(instance=catalago)
+    if modelo_nombre == "cConcepto":
+        form = FormularioConcepto(instance=catalago)
     
     consulta = cCatalagos.objects.filter(Seleccion=modelo_nombre)
     titulo = consulta[0]
@@ -674,7 +843,14 @@ def editar_catalagos(request, modelo_nombre, id_catalago):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=110000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=120000).count()
@@ -707,6 +883,10 @@ def aplicar_editar_catalagos(request, modelo_nombre, id_catalago):
         form = FormularioMunicipio(instance=catalago)
     if modelo_nombre == "cCalle":
         form = FormularioCalle(instance=catalago)
+    if modelo_nombre == "cTpTransaccion":
+        form = FormularioTpTransaccion(instance=catalago)
+    if modelo_nombre == "cConcepto":
+        form = FormularioConcepto(instance=catalago)
     
     consulta = cCatalagos.objects.filter(Seleccion=modelo_nombre)
     titulo = consulta[0]
@@ -718,7 +898,14 @@ def aplicar_editar_catalagos(request, modelo_nombre, id_catalago):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=110000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=120000).count()
@@ -752,6 +939,10 @@ def aplicar_editar_catalagos(request, modelo_nombre, id_catalago):
                 c = FormularioMunicipio(request.POST, instance=catalago)
             if modelo_nombre == "cCalle":
                 c = FormularioCalle(request.POST, instance=catalago)
+            if modelo_nombre == "cTpTransaccion":
+                c = FormularioTpTransaccion(request.POST, instance=catalago)
+            if modelo_nombre == "cConcepto":
+                c = FormularioConcepto(request.POST, instance=catalago)
             
             if c.is_valid():
                 
@@ -794,6 +985,10 @@ def eliminar_catalagos(request, id_catalago):
         c = mDireccion.objects.filter(CvMunicipio=id_catalago).count()
     if NomCat == "cCalle":
         c = mDireccion.objects.filter(CvCalle=id_catalago).count()
+    if NomCat == "cTpTransaccion":
+        c = mCajaGrande.objects.filter(CvTpTransaccion=id_catalago).count()
+    if NomCat == "cConcepto":
+        c = mCajaGrande.objects.filter(CvConcepto=id_catalago).count()
     
     if c == 0:
         return redirect('confirmarEliminarCatalagos', id_catalago=id_catalago)
@@ -823,7 +1018,14 @@ def confirmacion_eliminar_catalagos(request,id_catalago):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=110000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=120000).count()
@@ -874,7 +1076,14 @@ def listar_personas(request):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=210000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=220000).count()
@@ -922,8 +1131,14 @@ def registrar_personas(request):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
-    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=210000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=220000).count()
     M.btn_Modificar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=230000).count()
@@ -1002,8 +1217,14 @@ def validar_registrar_personas(request, curp, tp):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
-    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=210000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=220000).count()
     M.btn_Modificar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=230000).count()
@@ -1057,8 +1278,14 @@ def confirmacion_eliminar_persona(request,id_persona):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
-    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=210000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=220000).count()
     M.btn_Modificar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=230000).count()
@@ -1133,7 +1360,14 @@ def editar_personas(request, id_persona, id_direccion):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=210000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=220000).count()
@@ -1261,11 +1495,17 @@ def aplicar_editar_personas(request, id_persona, id_direccion):
         if c == 0:
             personar = FormularioRegistrarPersonas(request.POST, instance=p)
             fdireccion = FormularioRegistrarDireccion(request.POST, instance=d)
+            
+            Calle = request.POST['CalleDs']  
+            Colonia = request.POST['ColoniaDs']  
+            Municipio = request.POST['MunicipioDs']  
+            Ciudad = request.POST['CiudadDs'] 
+            
             if personar.is_valid():
-                fdireccion.instance.CvCalle = request.POST['CalleDs']  
-                fdireccion.instance.CvColonia = request.POST['ColoniaDs']  
-                fdireccion.instance.CvMunicipio = request.POST['MunicipioDs']  
-                fdireccion.instance.CvCiudad = request.POST['CiudadDs']                  
+                fdireccion.instance.CvCalle = Calle  
+                fdireccion.instance.CvColonia = Colonia  
+                fdireccion.instance.CvMunicipio = Municipio  
+                fdireccion.instance.CvCiudad = Ciudad                  
                 fdireccion.save()
                 
                 personar.instance.Curp = request.POST['Curp']  
@@ -1276,7 +1516,6 @@ def aplicar_editar_personas(request, id_persona, id_direccion):
                 personar.instance.CvTrabajo = request.POST['TrabajoPersona']  
                 personar.instance.CvTpPerson = request.POST['TipoPersona']  
                 personar.instance.CvAficion = request.POST['AficionDs']  
-                personar.instance.CvDireccion = mDireccion.objects.aggregate(Max('id'))['id__max']  
                 personar.save()
                             
                 MensajePersonas = 'Modificado exitosamente!'
@@ -1298,7 +1537,14 @@ def listar_aplicaciones(request):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=410000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=420000).count()
@@ -1317,7 +1563,14 @@ def validar_Cvaplicaciones(request, Cvaplicacion):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=410000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=420000).count()
@@ -1413,7 +1666,14 @@ def registrar_aplicaciones(request):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=410000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=420000).count()
@@ -1556,7 +1816,14 @@ def editar_aplicaciones(request, id_aplicacion):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=410000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=420000).count()
@@ -1577,7 +1844,14 @@ def aplicar_editar_aplicaciones(request, id_aplicacion):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=410000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=420000).count()
@@ -1616,7 +1890,14 @@ def validar_eliminar_aplicaciones(request, id_aplicacion):
     M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
-    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()    
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
     M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=410000).count()
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=420000).count()
@@ -1669,6 +1950,13 @@ def listar_accesos(request):
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
     M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
         
     return render(request, "Accesos.html", {"usuarios":usuarios, "aplicaciones":aplicaciones, "M":M})
 
@@ -1712,6 +2000,13 @@ def listar_accesos2(request, id_usuario):
     M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
     M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
     M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
     
     global MensajeAccesos
     Mensaje = MensajeAccesos
@@ -1737,3 +2032,1302 @@ def registrar_accesos(request, id_usuario, lista):
     
     return redirect('listaraccesos2', id_usuario=id_usuario)
     
+    
+def listar_productos(request):    
+    Productos = mProductos.objects.all()
+    
+    for u in Productos:
+        u.busqueda = mDtPerson.objects.filter(id=u.Proveedor).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreProveedor = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+        
+    r = mRegistro.objects.latest('id')
+    M =  mAccesos.objects.all()
+    
+    M.Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
+    M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
+    M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
+    M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
+    
+    M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=610000).count()
+    M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=620000).count()
+    M.btn_Modificar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=630000).count()
+    
+    global MensajeProductos
+    Mensaje = MensajeProductos
+    MensajeProductos = ''
+        
+    return render(request, "ListaProductos.html", {"Productos":Productos, "mensaje":Mensaje, "M":M})
+
+def registrar_productos(request):
+    Titulo = "Registro de Inventario"    
+    Productos = mProductos.objects.all()
+    Proveedores = mDtPerson.objects.filter(CvTpPerson=3)
+    
+    for u in Productos:
+        u.busqueda = mDtPerson.objects.filter(id=u.Proveedor).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreProveedor = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+    
+    for u in Proveedores:
+        u.busqueda = mDtPerson.objects.filter(id=u.id).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreProveedor = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+        
+    r = mRegistro.objects.latest('id')
+    M =  mAccesos.objects.all()
+    
+    M.Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
+    M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
+    M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
+    M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
+    
+    M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=610000).count()
+    M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=620000).count()
+    M.btn_Modificar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=630000).count()
+        
+    if request.method == 'GET':
+        global MensajeProductos
+        MensajeProductos = ''
+        return render(request, "RegistroProductos.html", {"Titulo":Titulo, "Productos":Productos, "Proveedores":Proveedores, "M":M})
+    else:
+        Codigo = request.POST['Codigo']
+        Producto = request.POST['Producto']
+        PreCompra = request.POST['PreCompra']
+        PreVenta = request.POST['PreVenta']
+        Caducidad = request.POST['FechaCaducidad']
+        Stock = request.POST['Stock']
+        MinStock = request.POST['MinStock']
+        Proveedor = request.POST['Proveedor']
+        
+        # Convertir PreCompra y PreVenta a float para calcular la utilidad
+        PreCompra = float(PreCompra)
+        PreVenta = float(PreVenta)
+        Utilidad = PreVenta - PreCompra
+        
+        # Crear nuevo registro
+        nuevo_registro = mProductos(
+            Codigo=Codigo,
+            Producto=Producto,
+            PreCompra=PreCompra,
+            PreVenta=PreVenta,
+            Utilidad=Utilidad,
+            FechaCaducidad=Caducidad,
+            Stock=Stock,
+            MinStock=MinStock,
+            Proveedor=Proveedor
+        )
+        nuevo_registro.save()
+        
+        MensajeProductos = 'Producto registrado exitosamente!'
+        return redirect('listarproductos')
+    
+
+def editar_productos(request, id_Producto): 
+    Titulo = "Modificacion de Inventario"
+    
+    ProductoEditar = mProductos.objects.filter(id=id_Producto).first()   
+    
+    ProductoEditar.Caducidad = ProductoEditar.FechaCaducidad.strftime('%Y-%m-%d')
+    
+    Productos = mProductos.objects.all()
+    Proveedores = mDtPerson.objects.filter(CvTpPerson=3)
+    
+    for u in Productos:
+        u.busqueda = mDtPerson.objects.filter(id=u.Proveedor).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreProveedor = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+    
+    for u in Proveedores:
+        u.busqueda = mDtPerson.objects.filter(id=u.id).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreProveedor = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+    
+    busqueda = mDtPerson.objects.filter(id=ProductoEditar.Proveedor).first()
+    n = cNombre.objects.filter(id=busqueda.CvNombre).first()
+    aP = cApellido.objects.filter(id=busqueda.ApePat).first()
+    aM = cApellido.objects.filter(id=busqueda.ApeMat).first()
+    ProductoEditar.NombreProveedor = f"{n.Ds} {aP.Ds} {aM.Ds}"
+    
+    
+    r = mRegistro.objects.latest('id')
+    M =  mAccesos.objects.all()
+    
+    M.Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
+    M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
+    M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
+    M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
+        
+    if request.method == 'GET':
+        global MensajeProductos
+        MensajeProductos = ''
+        return render(request, "RegistroProductos.html", {"Titulo":Titulo, "ProductoEditar":ProductoEditar , "Productos":Productos, "Proveedores":Proveedores, "M":M})
+    else:
+        Codigo = request.POST['Codigo']
+        Producto = request.POST['Producto']
+        FechaCaducidad = request.POST['FechaCaducidad']
+        PreCompra = request.POST['PreCompra']
+        PreVenta = request.POST['PreVenta']
+        Stock = request.POST['Stock']
+        MinStock = request.POST['MinStock']
+        Proveedor = request.POST['Proveedor']
+        
+        # Convertir PreCompra y PreVenta a float para calcular la utilidad
+        PreCompra = float(PreCompra)
+        PreVenta = float(PreVenta)
+        Utilidad = PreVenta - PreCompra
+        
+        
+        
+        # Editar registro
+        Editar_registro = mProductos.objects.get(id=id_Producto)
+        Editar_registro.Codigo=Codigo
+        Editar_registro.Producto=Producto
+        Editar_registro.FechaCaducidad=FechaCaducidad
+        Editar_registro.PreCompra=PreCompra
+        Editar_registro.PreVenta=PreVenta
+        Editar_registro.Utilidad=Utilidad
+        Editar_registro.Stock=Stock
+        Editar_registro.MinStock=MinStock
+        Editar_registro.Proveedor=Proveedor
+        Editar_registro.save()
+        
+        MensajeProductos = 'Producto modificado exitosamente!'
+        return redirect('listarproductos')
+    
+def eliminar_productos(request, id_Producto):
+    EliminarProducto = mProductos.objects.get(id=id_Producto)
+    EliminarProducto.Mensaje = f"Esta seguro de eliminar a {EliminarProducto.Producto}?"
+    
+    Productos = mProductos.objects.all()
+    
+    for u in Productos:
+        u.busqueda = mDtPerson.objects.filter(id=u.Proveedor).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreProveedor = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+        
+    r = mRegistro.objects.latest('id')
+    M =  mAccesos.objects.all()
+    
+    M.Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
+    M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
+    M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
+    M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
+        
+    return render(request, "ListaProductos.html", {"Productos":Productos, "EliminarProducto":EliminarProducto, "M":M})
+
+def aplicar_eliminar_productos(request, id_Producto):
+    Eliminar_registro = mProductos.objects.get(pk=id_Producto)
+    Eliminar_registro.delete()
+    global MensajeProductos
+    MensajeProductos = 'Producto eliminado exitosamente!'
+    return redirect('listarproductos')
+
+def venta(request):   
+    Clietes = mDtPerson.objects.filter(CvTpPerson=1)
+    
+    for u in Clietes:
+        u.busqueda = mDtPerson.objects.filter(id=u.id).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreClietes = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+        
+    r = mRegistro.objects.latest('id')
+    
+    r.busqueda = mDtPerson.objects.filter(id=r.CvPerson).first()
+    r.n = cNombre.objects.filter(id=r.busqueda.CvNombre).first()
+    r.aP = cApellido.objects.filter(id=r.busqueda.ApePat).first()
+    r.aM = cApellido.objects.filter(id=r.busqueda.ApeMat).first()
+    r.NombreEmpleado = f"{r.n.Ds} {r.aP.Ds} {r.aM.Ds}"
+    
+    
+    M =  mAccesos.objects.all()
+    
+    M.Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
+    M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
+    M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
+    M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
+        
+    return render(request, "Venta.html", {"Clietes":Clietes, "r":r, "M":M})
+
+def ProductoCodigo(request, Codigo):   
+    Producto = get_object_or_404(mProductos, Codigo=Codigo)
+    
+    data={
+        'descripcion': Producto.Producto,
+        'precio': Producto.PreVenta,
+        'stock': Producto.Stock
+    }
+    
+    return JsonResponse(data)
+
+def AlertaStock(request, Codigo, Cantidad):   
+    Producto = get_object_or_404(mProductos, Codigo=Codigo)
+    cantidadSolicitada = Producto.Stock - Cantidad
+    data = {}
+
+    if Producto.MinStock >= cantidadSolicitada:
+        data['Mensaje'] = f"Pongase en contacto con el proveedor para solicitar más {Producto.Producto}"
+    
+    return JsonResponse(data)
+
+@csrf_exempt
+def procesar_venta(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        Empleado = data.get('maestra').get('Empleado')
+        cliente = data.get('maestra').get('Cliente')
+        subtotal = data.get('maestra').get('SubTotal')
+        impuesto = data.get('maestra').get('Impuesto')
+        total = data.get('maestra').get('Total')
+        ventas = data.get('transaccional')
+        
+        # Crear registro en la tabla mVentas
+        mventa = mVentas.objects.create(
+            Empleado=Empleado,
+            Cliente=cliente,
+            FechaVenta=date.today(),
+            SubTotal=subtotal,
+            Impuesto=impuesto,
+            Total=total
+        )
+        
+        # Crear registros en la tabla tVentas y actualizar stock de productos
+        for venta in ventas:
+            tVentas.objects.create(
+                CvVenta=mventa.id,
+                Codigo=venta['Codigo'],
+                PrecioVenta=venta['PrecioVenta'],
+                Cantidad=venta['Cantidad'],
+                SubTot=venta['SubTot']
+            )
+            
+            producto = get_object_or_404(mProductos, Codigo=venta['Codigo'])
+            producto.Stock -= venta['Cantidad']
+            producto.save()
+            lista_faltantes_agregar(producto)
+        
+        # Crear registro en la tabla mCajaChica
+        mcajachica = mCajaChica.objects.create(
+            Monto = total,
+            CvVenta = mventa.id,
+            EdoCorte = False,
+            FecMovim = date.today(),
+            Empleado = Empleado,
+            FecCorte= None
+        )
+        
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
+
+def Pedido(request):   
+    Proveedores = mDtPerson.objects.filter(CvTpPerson=2)
+    
+    for u in Proveedores:
+        u.busqueda = mDtPerson.objects.filter(id=u.id).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreProveedores = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+        
+    r = mRegistro.objects.latest('id')
+    
+    r.busqueda = mDtPerson.objects.filter(id=r.CvPerson).first()
+    r.n = cNombre.objects.filter(id=r.busqueda.CvNombre).first()
+    r.aP = cApellido.objects.filter(id=r.busqueda.ApePat).first()
+    r.aM = cApellido.objects.filter(id=r.busqueda.ApeMat).first()
+    r.NombreEmpleado = f"{r.n.Ds} {r.aP.Ds} {r.aM.Ds}"
+    
+    lista_faltates = listaFaltantes.objects.all()
+    
+    from datetime import datetime, timedelta
+    """"
+    FecMin=datetime.today().strftime("%Y-%m-%d")
+    
+    fecha_pedido = FecMin + timedelta(days=10)
+
+    # Formatear la nueva fecha como cadena
+    FecPed = fecha_pedido.strftime("%Y-%m-%d")
+    """
+    # Fecha mínima como cadena
+    FecMin = datetime.today().strftime("%Y-%m-%d")
+
+    # Convertir la fecha mínima a un objeto datetime
+    fecha_minima = datetime.strptime(FecMin, "%Y-%m-%d")
+
+    # Añadir 10 días
+    fecha_pedido = fecha_minima + timedelta(days=10)
+
+    # Formatear la nueva fecha como cadena
+    FecPed = fecha_pedido.strftime("%Y-%m-%d")
+    
+    #Datos del efectivo de tabla mCajaGrande
+    datosCajaGrande = mCajaGrande.objects.latest('id')
+    
+    M =  mAccesos.objects.all()
+    
+    M.Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
+    M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
+    M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
+    M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count() 
+        
+    return render(request, "Pedido.html", {"Proveedores":Proveedores, "r":r, "M":M, "FecMin":FecMin, "FecPed":FecPed, "lista_faltates":lista_faltates, "datosCajaGrande":datosCajaGrande})
+
+def proveedor_productos(request, proveedor_id):
+    productosPocoStock = mProductos.objects.filter(Proveedor=proveedor_id, Stock__lt=F('MinStock'))
+    productosNormalStock = mProductos.objects.filter(Proveedor=proveedor_id, Stock__gte=F('MinStock'))
+
+    productos_poco_stock_data = [{'id': p.id, 'nombre': p.Producto, 'stock': p.Stock} for p in productosPocoStock]
+    productos_normal_stock_data = [{'id': p.id, 'nombre': p.Producto, 'stock': p.Stock} for p in productosNormalStock]
+
+    response_data = {
+        'productos_poco_stock': productos_poco_stock_data,
+        'productos_normal_stock': productos_normal_stock_data
+    }
+
+    return JsonResponse(response_data, safe=False)
+
+def precioCompra_producto(request, producto_ds):
+    producto = mProductos.objects.get(Producto=producto_ds)
+
+    response_data = {
+        'codigo': producto.Codigo,
+        'precio': producto.PreCompra
+    }
+
+    return JsonResponse(response_data, safe=False)
+
+
+@csrf_exempt
+def procesar_pedido(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        Empleado = data.get('maestra').get('Empleado')
+        Proveedor = data.get('maestra').get('Proveedor')
+        FechaPedido = data.get('maestra').get('FechaPedido')
+        FechaEntrega = data.get('maestra').get('FechaEntrega')
+        subtotal = data.get('maestra').get('SubTotal')
+        impuesto = data.get('maestra').get('Impuesto')
+        total = data.get('maestra').get('Total')
+        anticipo = data.get('maestra').get('Anticipo')
+        pagado = data.get('maestra').get('Pagado')
+        recibido = False
+        pedidos = data.get('transaccional')
+
+        # Crear registro en la tabla mVentas
+        mpedido = mPedidos.objects.create(
+            Empleado=Empleado,  
+            Proveedor=Proveedor,
+            FechaPedido=FechaPedido,
+            FechaEntrega=FechaEntrega,
+            SubTotal=subtotal,
+            Impuesto=impuesto,
+            Total=total,
+            Anticipo=anticipo,
+            Pagado=pagado,
+            Recibido=recibido
+        )
+        
+        # Crear registros en la tabla tVentas
+        for pedido in pedidos:
+            tPedidos.objects.create(
+                CvPedido=mpedido.id,
+                Codigo=pedido['Codigo'],
+                PrecioPedido=pedido['PrecioPedido'],
+                Cantidad=pedido['Cantidad'],
+                SubTot=pedido['SubTot']
+            )
+            
+            producto = get_object_or_404(mProductos, Codigo=pedido['Codigo'])
+            lista_faltantes_modificar(producto)
+        
+        if anticipo > 0:
+            #Datos del efectivo de tabla mCajaGrande
+            datosCajaGrande = mCajaGrande.objects.latest('id')
+            datosCajaGrande.Actual
+            
+            #Realizar registro en la tabla mCajaGrande 
+            CajaG = mCajaGrande.objects.create(
+                Anterior = datosCajaGrande.Actual,
+                Monto = anticipo,
+                Actual = round(datosCajaGrande.Actual - anticipo, 2),
+                CvTpTransaccion = 2,
+                CvConcepto = 2,
+                InfConcepto = mpedido.id,
+                Empleado = Empleado,
+                Fecha=date.today(),
+                Observacion = "Anticipo al proveedor"
+            )
+        
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
+
+def Reportes(request):   
+    ventas =  mVentas.objects.all()
+    pedidos = mPedidos.objects.all()
+    compras = mRecepcion.objects.all()
+    movimientos = mCajaGrande.objects.all()
+    lista_faltates = listaFaltantes.objects.all()
+        
+    for u in ventas:
+        u.busqueda = mDtPerson.objects.filter(id=u.Cliente).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreClietes = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+    
+    for u in ventas:
+        u.busqueda = mDtPerson.objects.filter(id=u.Empleado).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreEmpleados = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+    
+    for u in pedidos:
+        u.busqueda = mDtPerson.objects.filter(id=u.Proveedor).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreProveedor = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+    
+    for u in pedidos:
+        u.busqueda = mDtPerson.objects.filter(id=u.Empleado).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreEmpleados = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+    
+    for u in pedidos:
+        if u.Pagado == True:
+            u.estadoPagado = "Si"
+        else:
+            u.estadoPagado = "No"
+        
+        if u.Recibido == True:
+            u.estadoRecibido = "Si"
+        else:
+            u.estadoRecibido = "No"
+    
+    for u in lista_faltates:
+        u.datos_Producto=mProductos.objects.filter(Codigo=u.Codigo)
+        
+    for u in compras:
+        u.busqueda = mDtPerson.objects.filter(id=u.Proveedor).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreProveedor = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+    
+    for u in compras:
+        u.busqueda = mDtPerson.objects.filter(id=u.Empleado).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreEmpleados = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+    
+    for movimiento in movimientos:
+        movimiento.TpTransaccion = cTpTransaccion.objects.filter(id=movimiento.CvTpTransaccion).first()
+        movimiento.Concepto = cConcepto.objects.filter(id=movimiento.CvConcepto).first()
+        
+        movimiento.busqueda = mDtPerson.objects.filter(id=movimiento.Empleado).first()
+        movimiento.nombre = cNombre.objects.filter(id=movimiento.busqueda.CvNombre).first()
+        movimiento.aP = cApellido.objects.filter(id=movimiento.busqueda.ApePat).first()
+        movimiento.aM = cApellido.objects.filter(id=movimiento.busqueda.ApeMat).first()
+        movimiento.tp = cTpPerson.objects.filter(id=movimiento.busqueda.CvTpPerson).first()
+        
+    
+    # Consulta para productos con menos ventas
+    productos_menos_vendidos = (
+        tVentas.objects
+        .values('Codigo')  # Agrupar por código de producto
+        .annotate(total_vendido=Sum('Cantidad'))  # Sumar la cantidad vendida
+        .order_by('total_vendido')  # Ordenar por total vendido (menor a mayor)
+    )
+
+    # Obtener los nombres de los productos asociados    
+    productos = []
+    for producto in productos_menos_vendidos:
+        producto_obj = mProductos.objects.filter(Codigo=producto['Codigo']).first()
+        if producto_obj:
+            nombre_producto = producto_obj.Producto if producto_obj.Producto else "Nombre no disponible"
+            productos.append({
+                'nombre': nombre_producto,
+                'codigo': producto_obj.Codigo,
+                'total_vendido': producto['total_vendido']
+            })
+    
+    from django.utils import timezone
+    # Obtener la fecha actual
+    fecha_actual = timezone.now().date()
+
+    # Filtrar los productos cuya fecha de caducidad es menor a la fecha actual
+    caducidades = mProductos.objects.filter(FechaCaducidad__lt=fecha_actual)
+    
+    r = mRegistro.objects.latest('id')
+    M =  mAccesos.objects.all()
+    
+    M.Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
+    M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
+    M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
+    M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count() 
+    
+    M.btn_ventas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones='C10000').count()
+    M.btn_pedidos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones='C20000').count()
+        
+    return render(request, "Reportes.html",{"ventas":ventas, "pedidos":pedidos, "compras":compras, "movimientos":movimientos,  "lista_faltates":lista_faltates, "M":M, "productos_menos_vendidos": productos, "caducidades":caducidades})
+
+def detalleVenta(request, venta_id):
+    ventas = tVentas.objects.filter(CvVenta=venta_id)
+    
+    if not ventas.exists():
+        return JsonResponse({'error': 'Venta not found'}, status=404)
+    
+    detalleVenta_data = []
+    for venta in ventas:
+        producto = mProductos.objects.filter(Codigo=venta.Codigo).values_list('Producto', flat=True).first()
+        detalleVenta_data.append({
+            'codigo': venta.Codigo,
+            'producto': producto,
+            'precio': venta.PrecioVenta,
+            'cantidad': venta.Cantidad,
+            'subtotal': venta.SubTot
+        })
+    
+    response_data = {
+        'detalleVenta': detalleVenta_data
+    }
+    
+    return JsonResponse(response_data)
+
+def detallePedido(request, pedido_id):
+    pedidos = tPedidos.objects.filter(CvPedido=pedido_id)
+    
+    if not pedidos.exists():
+        return JsonResponse({'error': 'Pedido not found'}, status=404)
+    
+    detallePedido_data = []
+    for pedido in pedidos:
+        producto = mProductos.objects.filter(Codigo=pedido.Codigo).values_list('Producto', flat=True).first()
+        detallePedido_data.append({
+            'codigo': pedido.Codigo,
+            'producto': producto,
+            'precio': pedido.PrecioPedido,
+            'cantidad': pedido.Cantidad,
+            'subtotal': pedido.SubTot
+        })
+    
+    response_data = {
+        'detallePedido': detallePedido_data
+    }
+    
+    return JsonResponse(response_data)
+
+def detalleCompra(request, compra_id):
+    compras = tRecepcion.objects.filter(CvRecepcion=compra_id)
+    
+    if not compras.exists():
+        return JsonResponse({'error': 'Compra not found'}, status=404)
+    
+    detalleCompra_data = []
+    for compra in compras:
+        producto = mProductos.objects.filter(Codigo=compra.Codigo).values_list('Producto', flat=True).first()
+        detalleCompra_data.append({
+            'codigo': compra.Codigo,
+            'producto': producto,
+            'precio': compra.PrecioRecepcion,
+            'cantidad': compra.Cantidad,
+            'subtotal': compra.SubTot,
+            'observacion': compra.Observacion
+        })
+    
+    response_data = {
+        'detalleCompra': detalleCompra_data
+    }
+    
+    return JsonResponse(response_data)
+
+def lista_faltantes_agregar(producto):
+    if producto.MinStock >= producto.Stock:
+        if not listaFaltantes.objects.filter(Codigo=producto.Codigo).exists():
+            listaFaltantes.objects.create(
+                Codigo=producto.Codigo,
+                FechaAlerta=date.today(),
+                Pedido=False
+            )
+
+def lista_faltantes_modificar(producto):
+    if listaFaltantes.objects.filter(Codigo=producto.Codigo).exists():
+        listaActualizar = get_object_or_404(listaFaltantes, Codigo=producto.Codigo)
+        listaActualizar.Pedido = True
+        listaActualizar.save()
+        
+    
+def RecepcionPedidos(request):   
+    
+    r = mRegistro.objects.latest('id')
+    r.busqueda = mDtPerson.objects.filter(id=r.CvPerson).first()
+    r.n = cNombre.objects.filter(id=r.busqueda.CvNombre).first()
+    r.aP = cApellido.objects.filter(id=r.busqueda.ApePat).first()
+    r.aM = cApellido.objects.filter(id=r.busqueda.ApeMat).first()
+    r.NombreEmpleado = f"{r.n.Ds} {r.aP.Ds} {r.aM.Ds}"
+    
+    pedidos = mPedidos.objects.filter(Recibido=False)
+    for u in pedidos:
+        u.busqueda = mDtPerson.objects.filter(id=u.Proveedor).first()
+        u.n = cNombre.objects.filter(id=u.busqueda.CvNombre).first()
+        u.aP = cApellido.objects.filter(id=u.busqueda.ApePat).first()
+        u.aM = cApellido.objects.filter(id=u.busqueda.ApeMat).first()
+        u.NombreProveedor = f"{u.n.Ds} {u.aP.Ds} {u.aM.Ds}"
+    
+    M =  mAccesos.objects.all()
+    
+    M.Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
+    M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
+    M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
+    M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
+    
+    datosCajaGrande = mCajaGrande.objects.latest('id')
+    datosCajaGrande.Actual
+        
+    return render(request, "RecepcionPedidos.html",{"M":M, "r":r, "pedidos":pedidos, "datosCajaGrande":datosCajaGrande})
+
+def CodigoPedidoRecepcion(request, pedido_id):
+    # Obtener los datos del pedido, si no existe devuelve un error 404
+    pedido = get_object_or_404(mPedidos, id=pedido_id)
+    
+    # Buscar detalles del proveedor
+    busqueda = mDtPerson.objects.filter(id=pedido.Proveedor).first()
+    if busqueda:
+        nombre = cNombre.objects.filter(id=busqueda.CvNombre).first()
+        apellido_paterno = cApellido.objects.filter(id=busqueda.ApePat).first()
+        apellido_materno = cApellido.objects.filter(id=busqueda.ApeMat).first()
+        
+        # Construir el nombre completo del proveedor
+        nombre_proveedor = f"{nombre.Ds if nombre else ''} {apellido_paterno.Ds if apellido_paterno else ''} {apellido_materno.Ds if apellido_materno else ''}"
+    else:
+        nombre_proveedor = "Proveedor no encontrado"
+    
+    pedidoDatos = {
+        'idProveedor': pedido.Proveedor,
+        'Proveedor': nombre_proveedor,
+        'FechaPedido': pedido.FechaPedido,
+        'Anticipo': pedido.Anticipo,
+        'FechaEntrega': date.today()
+    }
+    
+    # Obtener los detalles del pedido
+    pedidoDetalle = list(tPedidos.objects.filter(CvPedido=pedido_id).values('Codigo', 'PrecioPedido', 'Cantidad'))
+
+    # Obtener la descripción de cada producto en los detalles del pedido
+    for detalle in pedidoDetalle:
+        producto = get_object_or_404(mProductos, Codigo=detalle['Codigo'])
+        detalle['Descripcion'] = producto.Producto
+        detalle['PrecioVenta'] = producto.PreVenta
+    
+    # Crear la respuesta
+    response_data = {
+        'pedidoDatos': pedidoDatos,
+        'pedidoDetalle': pedidoDetalle
+    }
+    
+    return JsonResponse(response_data)
+
+
+@csrf_exempt
+def procesar_recepcion(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        CvPedido = data.get('maestra').get('CvPedido')
+        Empleado = data.get('maestra').get('Empleado')
+        Proveedor = data.get('maestra').get('Proveedor')
+        FechaPedido = data.get('maestra').get('FechaPedido')
+        FechaRecepcion = data.get('maestra').get('FechaEntrega')
+        subtotal = data.get('maestra').get('SubTotal')
+        impuesto = data.get('maestra').get('Impuesto')
+        total = data.get('maestra').get('Total')
+        Compra = data.get('maestra').get('Compra')
+        Observacion = data.get('maestra').get('Observacion')
+        recepciones = data.get('transaccional')
+        
+        # Crear registro en la tabla mRecepcion
+        Recepcionn = mRecepcion.objects.create(
+            Empleado = Empleado,
+            Proveedor = Proveedor,
+            FechaPedido = FechaPedido,
+            FechaRecepcion = FechaRecepcion,
+            SubTotal = subtotal,
+            Impuesto = impuesto,
+            Total = total,
+            Observacion = Observacion
+        )
+        
+        # Crear registros en la tabla tRecepcion y actualizar stock de productos y precio de venta
+        for recepcion in recepciones:
+            tRecepcion.objects.create(
+                CvRecepcion = Recepcionn.id,
+                Codigo = recepcion['Codigo'],
+                PrecioRecepcion = recepcion['PrecioRecepcion'],
+                Cantidad = recepcion['Cantidad'],
+                SubTot = recepcion['SubTot'],
+                Observacion = recepcion['Observacion']
+            )
+            
+            producto = get_object_or_404(mProductos, Codigo=recepcion['Codigo'])
+            producto.Stock += recepcion['Cantidad']
+            producto.PreCompra = recepcion['PrecioRecepcion']
+            producto.PreVenta = recepcion['PrecioVenta']
+            producto.Utilidad = recepcion['PrecioVenta']-recepcion['PrecioRecepcion']
+            producto.save()
+            
+        #Actualisar el estado de recibo del pedido    
+        pedido = get_object_or_404(mPedidos, id=CvPedido)
+        pedido.Recibido = True
+        pedido.save()
+            
+        #Datos del efectivo de tabla mCajaGrande
+        datosCajaGrande = mCajaGrande.objects.latest('id')
+        datosCajaGrande.Actual
+        
+        #Realizar registro en la tabla mCajaGrande 
+        CajaG = mCajaGrande.objects.create(
+            Anterior = datosCajaGrande.Actual,
+            Monto = Compra,
+            Actual = round(datosCajaGrande.Actual - Compra, 2),
+            CvTpTransaccion = 2,
+            CvConcepto = 3,
+            InfConcepto = Recepcionn.id,
+            Empleado = Empleado,
+            Fecha=date.today(),
+            Observacion = "Recepcion de Pedido"
+        )
+        
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
+
+
+def CorteCaja(request):   
+    
+    r = mRegistro.objects.latest('id')
+    r.busqueda = mDtPerson.objects.filter(id=r.CvPerson).first()
+    r.n = cNombre.objects.filter(id=r.busqueda.CvNombre).first()
+    r.aP = cApellido.objects.filter(id=r.busqueda.ApePat).first()
+    r.aM = cApellido.objects.filter(id=r.busqueda.ApeMat).first()
+    r.NombreEmpleado = f"{r.n.Ds} {r.aP.Ds} {r.aM.Ds}"
+    
+    from datetime import datetime, timedelta
+    fecha = datetime.today().strftime("%Y-%m-%d")
+    
+    
+    M =  mAccesos.objects.all()
+    
+    M.Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
+    M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
+    M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
+    M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
+        
+    return render(request, "CorteCaja.html",{"M":M, "r":r, "fecha":fecha})
+
+def CalcularCorteCaja(request, FecIni, FecFin):
+    # Filtrar los registros que cumplen con las condiciones
+    registros = mCajaChica.objects.filter(
+        FecMovim__range=(FecIni, FecFin),  # Filtrar por rango de fechas
+        EdoCorte=False  # Filtrar donde EdoCorte es False
+    )
+
+    # Calcular el monto total
+    monto_total = registros.aggregate(total_monto=Sum('Monto'))['total_monto']
+
+    # Si no hay resultados, el valor devuelto será None, así que manejamos eso:
+    monto_total = monto_total if monto_total is not None else 0
+
+    # Obtener los IDs de los registros filtrados
+    ids_registros = list(registros.values_list('id', flat=True))
+
+    # Crear la respuesta
+    response_data = {
+        'monto_total': monto_total,
+        'ids_registros': ids_registros
+    }
+
+    return JsonResponse(response_data)
+
+@csrf_exempt
+def procesar_corteCaja(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        Empleado = data.get('maestra').get('Empleado')
+        Monto = data.get('maestra').get('Monto')
+        Diferencia = data.get('maestra').get('Diferencia')
+        Observacion = data.get('maestra').get('Observacion')
+        cajas = data.get('transaccional')
+        
+        # Crear registro en la tabla mRecepcion
+        Corte = mCorteCaja.objects.create(
+            Empleado = Empleado,
+            Monto = Monto,
+            Diferencia = Diferencia,
+            Fecha=date.today(),
+            Observacion = Observacion
+        )
+        
+        # Editar los campos EdoCorte y FecCorte de la tanbla mCajaChica
+        for caja in cajas:
+            c = get_object_or_404(mCajaChica, id=caja['Cv'])
+            c.EdoCorte = True
+            c.FecCorte = date.today()
+            c.save()
+            
+        #Datos del efectivo de tabla mCajaGrande
+        datosCajaGrande = mCajaGrande.objects.latest('id')
+        datosCajaGrande.Actual
+        
+        #Realizar registro en la tabla mCajaGrande 
+        CajaG = mCajaGrande.objects.create(
+            Anterior = datosCajaGrande.Actual,
+            Monto = Monto,
+            Actual = round(datosCajaGrande.Actual + Monto, 2),
+            CvTpTransaccion = 1,
+            CvConcepto = 1,
+            InfConcepto = Corte.id,
+            Empleado = Empleado,
+            Fecha=date.today(),
+            Observacion = Observacion
+        )
+        """
+        #Tabla maestra de Caja Grande    
+        class mCajaGrande(models.Model):
+            Anterior = models.FloatField()
+            Monto = models.FloatField()
+            Actual = models.FloatField()
+            CvTpTransaccion = models.IntegerField()
+            CvConcepto = models.IntegerField()
+            InfConcepto = models.IntegerField()
+            Empleado = models.IntegerField()
+            Fecha= models.DateField()
+            Observacion = models.CharField(max_length=200)
+        """
+        
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
+
+def listar_CajaGrande(request):
+    r = mRegistro.objects.latest('id')
+    r.busqueda = mDtPerson.objects.filter(id=r.CvPerson).first()
+    r.n = cNombre.objects.filter(id=r.busqueda.CvNombre).first()
+    r.aP = cApellido.objects.filter(id=r.busqueda.ApePat).first()
+    r.aM = cApellido.objects.filter(id=r.busqueda.ApeMat).first()
+    r.NombreEmpleado = f"{r.n.Ds} {r.aP.Ds} {r.aM.Ds}"
+    
+    #Datos del efectivo de tabla mCajaGrande
+    datosCajaGrande = mCajaGrande.objects.latest('id')
+    datosCajaGrande.Actual
+    
+    movimientos = mCajaGrande.objects.all()
+    
+    for movimiento in movimientos:
+        movimiento.TpTransaccion = cTpTransaccion.objects.filter(id=movimiento.CvTpTransaccion).first()
+        movimiento.Concepto = cConcepto.objects.filter(id=movimiento.CvConcepto).first()
+        
+        movimiento.busqueda = mDtPerson.objects.filter(id=movimiento.Empleado).first()
+        movimiento.nombre = cNombre.objects.filter(id=movimiento.busqueda.CvNombre).first()
+        movimiento.aP = cApellido.objects.filter(id=movimiento.busqueda.ApePat).first()
+        movimiento.aM = cApellido.objects.filter(id=movimiento.busqueda.ApeMat).first()
+        movimiento.tp = cTpPerson.objects.filter(id=movimiento.busqueda.CvTpPerson).first()
+    
+    M =  mAccesos.objects.all()
+    
+    M.Catalago = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=1).count()
+    M.Personas = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=2).count()
+    M.Usuarios = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=3).count()
+    M.Aplicaciones = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=4).count()
+    M.Accesos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=5).count()
+    M.Productos = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=6).count()
+    M.rVenta = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=7).count()
+    M.pedido = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=8).count()
+    M.recepcion = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith=9).count()
+    M.cortecaja = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='A').count()
+    M.cuentaEfectiva = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='B').count()
+    M.reportes = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones__startswith='C').count()
+    """
+    usuarios = mUsuario.objects.all()
+    
+    for usuario in usuarios:
+        usuario.busqueda = mDtPerson.objects.filter(id=usuario.CvPerson).first()
+        usuario.nombre = cNombre.objects.filter(id=usuario.busqueda.CvNombre).first()
+        usuario.aP = cApellido.objects.filter(id=usuario.busqueda.ApePat).first()
+        usuario.aM = cApellido.objects.filter(id=usuario.busqueda.ApeMat).first()
+        usuario.tp = cTpPerson.objects.filter(id=usuario.busqueda.CvTpPerson).first()
+    
+    r = mRegistro.objects.latest('id')
+        
+    
+    M.btn_Agregar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=310000).count()
+    M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=320000).count()
+    M.btn_Modificar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=330000).count()    
+    global MensajeUsuarios
+    Mensaje = MensajeUsuarios
+    MensajeUsuarios = ""
+    """
+    return render(request, "CuentaEfectiva.html", {"M":M, "movimientos":movimientos, "r":r, "datosCajaGrande":datosCajaGrande}) 
+
+@csrf_exempt
+def procesar_gasto(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        Empleado = data.get('maestra').get('Empleado')
+        Monto = data.get('maestra').get('Monto')
+        Observacion = data.get('maestra').get('Observacion')
+            
+        #Datos del efectivo de tabla mCajaGrande
+        datosCajaGrande = mCajaGrande.objects.latest('id')
+        datosCajaGrande.Actual
+        
+        #Realizar registro en la tabla mCajaGrande 
+        CajaG = mCajaGrande.objects.create(
+            Anterior = datosCajaGrande.Actual,
+            Monto = Monto,
+            Actual = round(datosCajaGrande.Actual - Monto, 2),
+            CvTpTransaccion = 2,
+            CvConcepto = 5,
+            InfConcepto = 0,
+            Empleado = Empleado,
+            Fecha=date.today(),
+            Observacion = Observacion
+        )
+        """
+        #Tabla maestra de Caja Grande    
+        class mCajaGrande(models.Model):
+            Anterior = models.FloatField()
+            Monto = models.FloatField()
+            Actual = models.FloatField()
+            CvTpTransaccion = models.IntegerField()
+            CvConcepto = models.IntegerField()
+            InfConcepto = models.IntegerField()
+            Empleado = models.IntegerField()
+            Fecha= models.DateField()
+            Observacion = models.CharField(max_length=200)
+        """
+        
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
+
+def ReportePeriodoVentas(request, FecIni, FecFin):
+    # Filtrar las ventas por fecha
+    ventas = mVentas.objects.filter(FechaVenta__range=(FecIni, FecFin))
+
+    # Lista para almacenar los datos que se van a devolver
+    ventas_data = []
+
+    for u in ventas:
+        # Obtener el nombre del empleado
+        bempleado = mDtPerson.objects.filter(id=u.Empleado).first()
+        
+        if bempleado:
+            n = cNombre.objects.filter(id=bempleado.CvNombre).first()
+            aP = cApellido.objects.filter(id=bempleado.ApePat).first()
+            aM = cApellido.objects.filter(id=bempleado.ApeMat).first()
+            
+            # Construir el nombre completo del empleado
+            NombreEmpleados = f"{n.Ds if n else ''} {aP.Ds if aP else ''} {aM.Ds if aM else ''}".strip()
+        else:
+            NombreEmpleados = "Desconocido"  # Manejo de caso en que no se encuentra el empleado
+        
+        
+        # Obtener el nombre del empleado
+        bcliente = mDtPerson.objects.filter(id=u.Cliente).first()
+        
+        if bcliente:
+            n = cNombre.objects.filter(id=bcliente.CvNombre).first()
+            aP = cApellido.objects.filter(id=bcliente.ApePat).first()
+            aM = cApellido.objects.filter(id=bcliente.ApeMat).first()
+            
+            # Construir el nombre completo del empleado
+            NombreClietes = f"{n.Ds if n else ''} {aP.Ds if aP else ''} {aM.Ds if aM else ''}".strip()
+        else:
+            NombreClietes = "Desconocido"  # Manejo de caso en que no se encuentra el empleado
+
+        # Agregar los datos a la lista
+        ventas_data.append({
+            'id': u.id,
+            'NombreEmpleados': NombreEmpleados,
+            'NombreClietes': NombreClietes,
+            'FechaVenta': u.FechaVenta,
+            'SubTotal': u.SubTotal,
+            'Impuesto': u.Impuesto,
+            'Total': u.Total
+        })
+
+    # Crear la respuesta
+    response_data = {
+        'ventas': ventas_data
+    }
+
+    return JsonResponse(response_data)
+
+def ReportePeriodoPedidos(request, FecIni, FecFin):
+    # Filtrar llos pedidos por fecha
+    pedidos = mPedidos.objects.filter(FechaPedido__range=(FecIni, FecFin))
+
+    # Lista para almacenar los datos que se van a devolver
+    pedidos_data = []
+
+    for u in pedidos:
+        # Obtener el nombre del empleado
+        bempleado = mDtPerson.objects.filter(id=u.Empleado).first()
+        
+        if bempleado:
+            n = cNombre.objects.filter(id=bempleado.CvNombre).first()
+            aP = cApellido.objects.filter(id=bempleado.ApePat).first()
+            aM = cApellido.objects.filter(id=bempleado.ApeMat).first()
+            
+            # Construir el nombre completo del empleado
+            NombreEmpleados = f"{n.Ds if n else ''} {aP.Ds if aP else ''} {aM.Ds if aM else ''}".strip()
+        else:
+            NombreEmpleados = "Desconocido"  # Manejo de caso en que no se encuentra el empleado
+        
+        
+        # Obtener el nombre del empleado
+        bproveedor = mDtPerson.objects.filter(id=u.Proveedor).first()
+        
+        if bproveedor:
+            n = cNombre.objects.filter(id=bproveedor.CvNombre).first()
+            aP = cApellido.objects.filter(id=bproveedor.ApePat).first()
+            aM = cApellido.objects.filter(id=bproveedor.ApeMat).first()
+            
+            # Construir el nombre completo del empleado
+            NombreProveedor = f"{n.Ds if n else ''} {aP.Ds if aP else ''} {aM.Ds if aM else ''}".strip()
+        else:
+            NombreProveedor = "Desconocido"  # Manejo de caso en que no se encuentra el empleado
+            
+        if u.Pagado == True:
+            estadoPagado = "Si"
+        else:
+            estadoPagado = "No"
+        
+        if u.Recibido == True:
+            estadoRecibido = "Si"
+        else:
+            estadoRecibido = "No"
+
+        # Agregar los datos a la lista
+        pedidos_data.append({
+            'id': u.id,
+            'NombreEmpleados': NombreEmpleados,
+            'NombreProveedor': NombreProveedor,
+            'FechaPedido': u.FechaPedido,
+            'FechaEntrega': u.FechaEntrega,
+            'SubTotal': u.SubTotal,
+            'Impuesto': u.Impuesto,
+            'Total': u.Total, 
+            'Anticipo' : u.Anticipo,
+            'Pagado' : estadoPagado,
+            'Recibido' : estadoRecibido
+        })
+
+    # Crear la respuesta
+    response_data = {
+        'pedidos': pedidos_data
+    }
+
+    return JsonResponse(response_data)
+
+def ReportePeriodoCompras(request, FecIni, FecFin):
+    # Filtrar llos pedidos por fecha
+    compras = mRecepcion.objects.filter(FechaRecepcion__range=(FecIni, FecFin))
+
+    # Lista para almacenar los datos que se van a devolver
+    compras_data = []
+
+    for u in compras:
+        # Obtener el nombre del empleado
+        bempleado = mDtPerson.objects.filter(id=u.Empleado).first()
+        
+        if bempleado:
+            n = cNombre.objects.filter(id=bempleado.CvNombre).first()
+            aP = cApellido.objects.filter(id=bempleado.ApePat).first()
+            aM = cApellido.objects.filter(id=bempleado.ApeMat).first()
+            
+            # Construir el nombre completo del empleado
+            NombreEmpleados = f"{n.Ds if n else ''} {aP.Ds if aP else ''} {aM.Ds if aM else ''}".strip()
+        else:
+            NombreEmpleados = "Desconocido"  # Manejo de caso en que no se encuentra el empleado
+        
+        
+        # Obtener el nombre del empleado
+        bproveedor = mDtPerson.objects.filter(id=u.Proveedor).first()
+        
+        if bproveedor:
+            n = cNombre.objects.filter(id=bproveedor.CvNombre).first()
+            aP = cApellido.objects.filter(id=bproveedor.ApePat).first()
+            aM = cApellido.objects.filter(id=bproveedor.ApeMat).first()
+            
+            # Construir el nombre completo del empleado
+            NombreProveedor = f"{n.Ds if n else ''} {aP.Ds if aP else ''} {aM.Ds if aM else ''}".strip()
+        else:
+            NombreProveedor = "Desconocido"  # Manejo de caso en que no se encuentra el empleado
+            
+
+        # Agregar los datos a la lista
+        compras_data.append({
+            'id': u.id,
+            'NombreEmpleados': NombreEmpleados,
+            'NombreProveedor': NombreProveedor,
+            'FechaPedido': u.FechaPedido,
+            'FechaCompra': u.FechaRecepcion,
+            'SubTotal': u.SubTotal,
+            'Impuesto': u.Impuesto,
+            'Total': u.Total, 
+            'Observacion' : u.Observacion
+        })
+
+    # Crear la respuesta
+    response_data = {
+        'compras': compras_data
+    }
+
+    return JsonResponse(response_data)
+
+def ReportePeriodoEfectivo(request, FecIni, FecFin):
+    # Filtrar llos pedidos por fecha
+    movimientos = mCajaGrande.objects.filter(Fecha__range=(FecIni, FecFin))
+
+    # Lista para almacenar los datos que se van a devolver
+    movimientos_data = []
+
+    for u in movimientos:
+        # Obtener el nombre del empleado
+        bempleado = mDtPerson.objects.filter(id=u.Empleado).first()
+        
+        if bempleado:
+            n = cNombre.objects.filter(id=bempleado.CvNombre).first()
+            aP = cApellido.objects.filter(id=bempleado.ApePat).first()
+            aM = cApellido.objects.filter(id=bempleado.ApeMat).first()
+            
+            # Construir el nombre completo del empleado
+            NombreEmpleados = f"{n.Ds if n else ''} {aP.Ds if aP else ''} {aM.Ds if aM else ''}".strip()
+        else:
+            NombreEmpleados = "Desconocido"  # Manejo de caso en que no se encuentra el empleado
+        
+        
+        TpTransaccion = cTpTransaccion.objects.filter(id=u.CvTpTransaccion).first()
+        Concepto = cConcepto.objects.filter(id=u.CvConcepto).first()
+            
+
+        # Agregar los datos a la lista
+        movimientos_data.append({
+            'id': u.id,
+            'Anterior': u.Anterior,
+            'Monto': u.Monto,
+            'Actual': u.Actual,
+            'TpTransaccion': TpTransaccion.Ds,
+            'Concepto': Concepto.Ds,
+            'InfConcepto': u.InfConcepto,
+            'NombreEmpleados': NombreEmpleados,
+            'Fecha': u.Fecha, 
+            'Observacion' : u.Observacion
+        })
+
+    # Crear la respuesta
+    response_data = {
+        'movimientos': movimientos_data
+    }
+
+    return JsonResponse(response_data)
+
+def ReportePeriodoCaducidad(request, FecIni, FecFin):
+    # Filtrar los productos por rango de fechas
+    productos = mProductos.objects.filter(FechaCaducidad__range=(FecIni, FecFin)).order_by('FechaCaducidad').values(
+        'Codigo', 'Producto', 'FechaCaducidad', 'Stock'
+    )
+
+    # Crear la respuesta en formato JSON
+    response_data = {
+        'productos': list(productos)  # Convertir el queryset a lista
+    }
+
+    return JsonResponse(response_data)

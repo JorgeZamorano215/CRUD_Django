@@ -1,0 +1,713 @@
+{% extends "home.html" %} 
+
+{% block content %}
+
+    <style>
+        /* Animación para el modal */
+        #ventaModal .modal-dialog {
+            transform: scale(0.7); /* Inicialmente más pequeño */
+            transition: transform 0.4s ease; /* Suaviza la transición */
+        }
+
+        #ventaModal.show .modal-dialog {
+            transform: scale(1); /* Restablece el tamaño cuando se muestra */
+        }
+
+        /* Animación para el modal de advertencia */
+        #advertenciaModal .modal-dialog {
+            transform: translateY(-100px);
+            transition: transform 0.4s ease-out;
+        }
+
+        #advertenciaModal.show .modal-dialog {
+            transform: translateY(0);
+        }
+
+        /* Color del botón de cierre y la cabecera */
+        #advertenciaModal .btn-close {
+            background-color: #000; /* Botón de cierre en color negro */
+        }
+
+        /* Cabecera de advertencia en amarillo con texto oscuro */
+        #advertenciaModal .modal-header {
+            background-color: #ffc107; /* Color de advertencia amarillo */
+            color: #212529; /* Texto oscuro */
+        }
+        
+    </style>
+    <!-- Modal con estilo y animación -->
+    <div class="modal fade" id="ventaModal" tabindex="-1" aria-labelledby="ventaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg p-3 mb-5 bg-body-tertiary rounded" style="transition: all 0.5s ease;">
+            <div class="modal-header">
+            <h5 class="modal-title text-success" id="ventaModalLabel">¡Venta Exitosa!</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+            <!-- Imagen de un carrito de compras -->
+            <img src="https://cdn-icons-png.flaticon.com/512/1170/1170576.png" alt="Carrito de compras" style="width: 100px; margin-bottom: 20px;">
+            <p class="text-muted">La venta se ha realizado correctamente.</p>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-success w-100" id="confirmarVentaBtn">Aceptar</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- Modal de advertencia con color amarillo -->
+    <div class="modal fade" id="advertenciaModal" tabindex="-1" aria-labelledby="advertenciaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg p-3 mb-5 bg-warning rounded" style="transition: all 0.5s ease;">
+            <div class="modal-header">
+            <h5 class="modal-title text-dark" id="advertenciaModalLabel">Advertencia</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center text-dark">
+            <!-- Icono de advertencia en forma de triángulo -->
+            <img src="https://cdn-icons-png.flaticon.com/512/595/595067.png" alt="Advertencia" style="width: 80px; margin-bottom: 20px;">
+            <p><strong id="nombreProducto">[Nombre del Producto]</strong></p>
+            <p>Póngase en contacto con el proveedor para solicitar más.</p>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-dark w-100" id="cerrarAdvertenciaBtn">Aceptar</button>
+            </div>
+        </div>
+        </div>
+    </div>
+    
+    <p></P>
+    <p></P>
+    <h1>Venta</h1>
+    {% if mensaje %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert" class="justify-content-center" style="text-align: center;">
+            <strong> {{ mensaje }}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+    <h1>Realizar Venta</h1>
+    
+    <!--
+    <div class="conteiner-fluid row">
+        <form class="col-12 p-4" method="POST" action="{% url 'procesar_venta' %}">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-sm-4">
+                    <label for="lang">Empleado</label>
+                    <select name="Empleado" id="id_Empleado" class="form-control">
+                        <option value="{{r.CvPerson}}">{{r.NombreEmpleado}}</option>
+                    </select>
+                </div>
+            </div>
+            <p></p>
+            <div class="row">
+                <div class="col-sm-4">
+                    <label for="lang">Cliente</label>
+                    <select name="Cliente" id="id_Cliente" class="form-control">
+                        <option value=""></option>
+                        {% for Cliete in Clietes %}
+                            <option value="{{ Cliete.id }}">
+                                {{ Cliete.NombreClietes }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <p></p>
+            <div class="row">
+                <div class="col-sm-2">
+                    <label for="id_Codigo">Codigo</label>
+                    <input type="text" name="Codigo" maxlength="13" required="" id="id_Codigo" class="form-control">
+                </div>
+                <div class="col-sm-3">
+                    <label for="id_Producto">Producto</label>
+                    <input type="text" name="Producto" maxlength="50" required="" id="id_Producto" class="form-control" readonly>
+                </div>
+                <div class="col-sm-1">
+                    <label for="id_Stock">Cantidad</label>
+                    <input type="number" name="Stock" required="" id="id_Stock" class="form-control">
+                </div>
+                <div class="col-sm-2">
+                    <label for="id_PreVenta">Precio</label>
+                    <input type="number" name="PreVenta" step="any" required="" id="id_PreVenta" class="form-control" readonly>
+                </div>
+                <div class="col-sm-1">
+                    <label for="id_Stock">Disponible</label>
+                    <input type="number" name="StockMin" required="" id="id_StockMin" class="form-control" readonly>
+                </div>
+            </div>
+            <p></p>
+            <div class="row">
+                <div class="col-sm-8">
+                    <table class="table table-striped" id="productosTable">
+                        <thead>
+                            <tr>
+                                <th scope="col">Codigo</th>
+                                <th scope="col">Producto</th>
+                                <th scope="col">Precio</th>
+                                <th scope="col">Cantidad</th>
+                                <th scope="col">Total</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group row">
+                        <label for="EfectivoRecibido">Efectivo Recibido</label>
+                        <div class="col-sm-3">
+                            <input type="number" name="Efectivo" step="any" required="" id="id_Efectivo" class="form-control">
+                        </div>
+                    </div>
+                    <p></p>
+                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                    <label class="form-check-label" for="flexCheckDefault">
+                        Efectivo Exacto
+                    </label>
+                    <p></p>
+                    <div class="form-group row">
+                        <label for="Id_Sub" class="col-sm-4 col-form-label">SUBTOTAL</label>
+                        <div class="col-sm-8">
+                            <input type="number" readonly class="form-control-plaintext" id="Id_Sub" value="0.00">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="id_Iva" class="col-sm-4 col-form-label">IVA(16)</label>
+                        <div class="col-sm-8">
+                            <input type="number" readonly class="form-control-plaintext" id="id_Iva" value="0.00">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="id_Total" class="col-sm-4 col-form-label">TOTAL</label>
+                        <div class="col-sm-8">
+                            <input type="number" readonly class="form-control-plaintext" id="id_Total" value="0.00">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success" id="venderBtn">
+                        <i class="fas fa-shopping-cart"></i> Vender
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>   
+    --> 
+    <div class="conteiner-fluid row">
+        <form class="col-12 p-4" method="POST" action="{% url 'procesar_venta' %}">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-sm-4">
+                    <label for="lang">Empleado</label>
+                    <select name="Empleado" id="id_Empleado" class="form-control">
+                        <option value="{{r.CvPerson}}">{{r.NombreEmpleado}}</option>
+                    </select>
+                </div>
+            </div>
+            <p></p>
+            <div class="row">
+                <div class="col-sm-4">
+                    <label for="lang">Cliente</label>
+                    <select name="Cliente" id="id_Cliente" class="form-control">
+                        <option value=""></option>
+                        {% for Cliete in Clietes %}
+                            <option value="{{ Cliete.id }}">
+                                {{ Cliete.NombreClietes }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <p></p>
+            <div class="row">
+                <div class="col-sm-2">
+                    <label for="id_Codigo">Codigo</label>
+                    <input type="text" name="Codigo" maxlength="13" required="" id="id_Codigo" class="form-control">
+                </div>
+                <div class="col-sm-3">
+                    <label for="id_Producto">Producto</label>
+                    <input type="text" name="Producto" maxlength="50" required="" id="id_Producto" class="form-control" readonly>
+                    
+                </div>
+                <div class="col-sm-1">
+                    <label for="id_Stock">Cantidad</label>
+                    <input type="number" name="Stock" required="" id="id_Stock" class="form-control">
+                </div>
+                <div class="col-sm-2">
+                    <label for="id_PreVenta">Precio</label>
+                    <input type="number" name="PreVenta" step="any" required="" id="id_PreVenta" class="form-control" readonly>
+                </div>
+                <div class="col-sm-1">
+                    <label for="id_Stock">Disponible</label>
+                    <input type="number" name="StockMin" required="" id="id_StockMin" class="form-control" readonly>
+                </div>
+                
+            </div>
+            <p></p>
+            
+            <p></p>
+            <div class="row">
+                <div class="col-sm-10">
+                    <table class="table table-striped" id="productosTable">
+                        <thead>
+                            <tr>
+                                <th scope="col">Codigo</th>
+                                <th scope="col">Producto</th>
+                                <th scope="col">Precio</th>
+                                <th scope="col">Cantidad</th>
+                                <th scope="col">Total</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Filas generadas dinámicamente aparecerán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>            
+
+            <p></p>
+            <p></p>
+            <div class="container">
+                <div class="form-group row">
+                    <label for="EfectivoRecibido">Efectivo Recibido</label>
+                    <div class="col-sm-2">
+                        <input type="number" name="Efectivo" step="any" required="" id="id_Efectivo" class="form-control">
+                    </div>
+                </div>
+        
+                <p></p>
+                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                <label class="form-check-label" for="flexCheckDefault">
+                    Efectivo Exacto
+                </label>
+                <p></p>
+                    
+                <div class="form-group row">
+                    <label for="Id_Sub" class="col-sm-1 col-form-label">SUBTOTAL</label>
+                    <div class="col-sm-2">
+                        <input type="number" readonly class="form-control-plaintext" id="Id_Sub" value="0.00">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="id_Iva" class="col-sm-1 col-form-label">IVA(16)</label>
+                    <div class="col-sm-2">
+                        <input type="number" readonly class="form-control-plaintext" id="id_Iva" value="0.00">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="id_Total" class="col-sm-1 col-form-label">TOTAL</label>
+                    <div class="col-sm-2">
+                        <!--<input type="number" name="Efectivo" step="any" required="" id="id_Total" class="form-control">-->
+                        <input type="number" readonly class="form-control-plaintext" id="id_Total" value="0.00">
+                    </div>
+                </div>
+        
+                <!--<button type="button" class="btn btn-success" id="venderBtn">Vender</button>-->
+                <button type="button" class="btn btn-success" id="venderBtn">
+                    <i class="fas fa-shopping-cart"></i> Vender
+                </button>
+                
+                
+        
+            </div>
+        </form>
+    </div>
+
+    
+
+    
+
+    <div class="row col-12 justify-content-end mb-2 pr-0">
+        <a class="btn btn-primary" href="{% url 'Inicio' %}">Salir</a>
+    </div>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <script>
+        document.getElementById('venderBtn').addEventListener('click', vender);
+
+        function vender() {
+            // Capturar los datos de las tablas
+            const datosMaestra = capturarDatosMaestra();
+            const datosTransaccional = capturarDatosTransaccional();
+
+            console.log('Datos Maestra:', datosMaestra);
+            console.log('Datos Transaccional:', datosTransaccional);
+
+            // Obtener el CSRF token
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            // Enviar los datos al backend
+            fetch('/realizarventa/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    maestra: datosMaestra,
+                    transaccional: datosTransaccional
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Llamar a la función cuando se realice la venta
+                    mostrarModal();
+                } else {
+                    alert('Hubo un error al procesar la venta');
+                }
+            })
+            .catch(error => {
+                console.error('Error al enviar datos de venta:', error);
+                alert('Hubo un error al procesar la venta');
+            });
+
+        }
+        
+        // Función que activa el modal
+        function mostrarModal() {
+            var modal = new bootstrap.Modal(document.getElementById('ventaModal'));
+            modal.show();
+
+            // Agregamos un listener al botón "Aceptar"
+            document.getElementById('confirmarVentaBtn').addEventListener('click', function() {
+                // Aquí puedes redirigir o limpiar la página
+                window.location.href = "{% url 'venta' %}";  // Redirige a la página de ventas
+            });
+        }
+
+        function mostrarAdvertenciaModal(producto) {
+            // Establecer el nombre del producto en el modal
+            document.getElementById('nombreProducto').textContent = producto;
+        
+            // Mostrar el modal
+            var modal = new bootstrap.Modal(document.getElementById('advertenciaModal'));
+            modal.show();
+        
+            // Agregar un listener al botón de cerrar
+            document.getElementById('cerrarAdvertenciaBtn').addEventListener('click', function() {
+                // Aquí puedes hacer otras acciones como redirigir o realizar otra validación
+                modal.hide();  // Cerrar el modal
+            });
+        }
+        
+        
+        function capturarDatosMaestra() {
+            const datosMaestra = {
+                Empleado: parseInt(document.getElementById('id_Empleado').value), // Ajusta esto si tienes el empleado en otro lugar
+                Cliente: parseInt(document.getElementById('id_Cliente').value),
+                SubTotal: parseFloat(document.getElementById('Id_Sub').value),
+                Impuesto: parseFloat(document.getElementById('id_Iva').value),
+                Total: parseFloat(document.getElementById('id_Total').value)
+            };
+            return datosMaestra;
+        }
+
+        function capturarDatosTransaccional() {
+            const filas = document.querySelectorAll("#tableBody tr");
+            const datosTransaccional = [];
+
+            filas.forEach(fila => {
+                const codigo = fila.cells[0].innerText;
+                const precio = parseFloat(fila.cells[2].innerText);
+                const cantidad = parseInt(fila.cells[3].innerText);
+                const subTotal = parseFloat(fila.cells[4].innerText);
+
+                const datosProducto = {
+                    Codigo: codigo,
+                    PrecioVenta: precio,
+                    Cantidad: cantidad,
+                    SubTot: subTotal
+                };
+
+                datosTransaccional.push(datosProducto);
+            });
+
+            return datosTransaccional;
+        }
+        /*
+        document.getElementById('id_Codigo').addEventListener('blur', function() {
+            const codigo = document.getElementById('id_Codigo').value;
+            if (codigo) {
+                // Verificar si el código ya está en la tabla
+                const filas = document.querySelectorAll('#productosTable tbody tr');
+                let codigoExistente = false;
+                
+                filas.forEach(fila => {
+                    const celdaCodigo = fila.querySelector('td:first-child');
+                    if (celdaCodigo && celdaCodigo.textContent.trim() === codigo.trim()) {
+                        codigoExistente = true;
+                    }
+                });
+                
+                if (!codigoExistente) {
+                    fetch(`/api/productos/${codigo}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            document.getElementById('id_Producto').value = data.descripcion;
+                            document.getElementById('id_PreVenta').value = data.precio;
+                            document.getElementById('id_StockMin').value = data.stock;
+
+                            document.getElementById('id_Stock').value = 1;
+                            document.getElementById('id_Stock').focus();
+                        })
+                        .catch(error => console.error('Error al obtener los datos del producto:', error));
+                } else {
+                    alert('El Prodcuto ya esta registrado pararealizar la venta.');
+                    document.getElementById('id_Codigo').value = '';
+                    document.getElementById('id_Codigo').focus();
+                    
+                }
+            }
+        });
+        */
+        // Manejar el evento blur (cuando el usuario presiona Tab o hace clic fuera del campo)
+        document.getElementById('id_Codigo').addEventListener('blur', function() {
+            procesarCodigo();  // Reutilizamos la función para manejar código
+        });
+
+        // Manejar el evento keypress (cuando el usuario presiona Enter)
+        document.getElementById('id_Codigo').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Evita cualquier acción predeterminada como el envío del formulario
+                procesarCodigo();  // Llamar a la función cuando se presiona Enter
+            }
+        });
+
+        // Función para procesar el código del producto
+        function procesarCodigo() {
+            const codigo = document.getElementById('id_Codigo').value;
+            if (codigo) {
+                // Verificar si el código ya está en la tabla
+                const filas = document.querySelectorAll('#productosTable tbody tr');
+                let codigoExistente = false;
+
+                filas.forEach(fila => {
+                    const celdaCodigo = fila.querySelector('td:first-child');
+                    if (celdaCodigo && celdaCodigo.textContent.trim() === codigo.trim()) {
+                        codigoExistente = true;
+                    }
+                });
+
+                if (!codigoExistente) {
+                    fetch(`/api/productos/${codigo}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            document.getElementById('id_Producto').value = data.descripcion;
+                            document.getElementById('id_PreVenta').value = data.precio;
+                            document.getElementById('id_StockMin').value = data.stock;
+
+                            document.getElementById('id_Stock').value = 1;
+                            document.getElementById('id_Stock').focus();
+                        })
+                        .catch(error => console.error('Error al obtener los datos del producto:', error));
+                } else {
+                    alert('El producto ya está registrado para realizar la venta.');
+                    document.getElementById('id_Codigo').value = '';
+                    document.getElementById('id_Codigo').focus();
+                }
+            }
+        }
+        /*
+        document.getElementById('id_Codigo').addEventListener('blur', function() {
+            const codigo = document.getElementById('id_Codigo').value;
+            if (codigo) {
+                fetch(`/api/productos/${codigo}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('id_Producto').value = data.descripcion;
+                        document.getElementById('id_PreVenta').value = data.precio;
+                        document.getElementById('id_StockMin').value = data.stock;
+    
+                        document.getElementById('id_Stock').focus();
+                    })
+                    .catch(error => console.error('Error al obtener los datos del producto:', error));
+                    //alert('El codigo no le perteneze a ningun Producto');
+            }
+        });
+        */
+        function AlertaProducto() {
+            const codigo = document.getElementById('id_Codigo').value;
+            const cantidad = document.getElementById('id_Stock').value;
+            if (codigo) {
+                fetch(`/api/AlertaStock/${codigo}/${cantidad}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.Mensaje) {
+                            //alert(data.Mensaje);
+                            // Llamar a la función con el nombre del producto que falta
+                            mostrarAdvertenciaModal(data.Mensaje);
+                        }
+                    })
+                    .catch(error => console.error('Error', error));
+                    
+            }
+
+        }
+
+        document.getElementById('id_Stock').addEventListener('keypress', function(event) {
+            console.log('Tecla presionada');
+            if (event.key === 'Enter') {
+                const c = parseFloat(document.getElementById('id_Stock').value);
+                const d = parseFloat(document.getElementById('id_StockMin').value);
+                
+                if (isNaN(c) || isNaN(d)) {
+                    alert("Por favor, asegúrese de que ambos campos contengan números válidos.");
+                } else {
+                    if (c > 0){
+        
+                        if (c > d) {
+                            alert("La cantidad es mayor que la cantidad de productos disponible.");
+                        } else {
+                            AlertaProducto();
+                            
+                            event.preventDefault();
+                            
+                            // Obtener los valores de los campos de entrada
+                            const codigo = document.getElementById('id_Codigo').value;
+                            const producto = document.getElementById('id_Producto').value;
+                            const cantidad = parseFloat(document.getElementById('id_Stock').value);
+                            const precio = parseFloat(document.getElementById('id_PreVenta').value);
+                            
+                            // Calcular el total
+                            const total = cantidad * precio;
+        
+                            // Crear una nueva fila en la tabla
+                            const newRow = document.createElement('tr');
+                            newRow.innerHTML = `
+                                <td>${codigo}</td>
+                                <td>${producto}</td>
+                                <td>${precio.toFixed(2)}</td>
+                                <td>${cantidad}</td>
+                                <td>${total.toFixed(2)}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm eliminar-fila">
+                                        <i class="fas fa-trash"></i> <!-- Ícono de basura -->
+                                    </button>
+                                </td>
+                            `;
+        
+                            // Agregar la nueva fila al cuerpo de la tabla
+                            document.getElementById('tableBody').appendChild(newRow);
+        
+                            // Limpiar los campos de entrada
+                            document.getElementById('id_Codigo').value = '';
+                            document.getElementById('id_Producto').value = '';
+                            document.getElementById('id_Stock').value = '';
+                            document.getElementById('id_StockMin').value = '';
+                            document.getElementById('id_PreVenta').value = '';
+        
+                            calcularTotales();
+        
+                            document.getElementById('id_Codigo').focus();
+        
+                            // Agregar funcionalidad para eliminar la fila
+                            newRow.querySelector('.eliminar-fila').addEventListener('click', function() {
+                                newRow.remove(); // Eliminar la fila al hacer clic en el botón
+                                calcularTotales(); // Actualizar los totales después de eliminar la fila
+                            });
+                        }
+                    } else {
+                        alert("Ingresa una cantidad mayor a 0");
+                    }
+                }
+            }
+        });
+        
+        /*
+        document.getElementById('id_Stock').addEventListener('keypress', function(event) {
+            console.log('Tecla presionada');
+            if (event.key === 'Enter') {
+                const c = parseFloat(document.getElementById('id_Stock').value);
+                const d = parseFloat(document.getElementById('id_StockMin').value);
+                
+                if (isNaN(c) || isNaN(d)) {
+                    alert("Por favor, asegúrese de que ambos campos contengan números válidos.");
+                } else {
+                    if (c > 0){
+
+                    
+                        if (c > d) {
+                            alert("La cantidad es mayor que la cantidad de productos disponible.");
+                        } else {
+                            
+                            AlertaProducto();
+                            
+                            event.preventDefault();
+                            
+                            // Obtener los valores de los campos de entrada
+                            const codigo = document.getElementById('id_Codigo').value;
+                            const producto = document.getElementById('id_Producto').value;
+                            const cantidad = parseFloat(document.getElementById('id_Stock').value);
+                            const precio = parseFloat(document.getElementById('id_PreVenta').value);
+                            
+                            // Calcular el total
+                            const total = cantidad * precio;
+                
+                            // Crear una nueva fila en la tabla
+                            const newRow = document.createElement('tr');
+                            newRow.innerHTML = `
+                                <td>${codigo}</td>
+                                <td>${producto}</td>
+                                <td>${precio.toFixed(2)}</td>
+                                <td>${cantidad}</td>
+                                <td>${total.toFixed(2)}</td>
+                            `;
+                
+                            // Agregar la nueva fila al cuerpo de la tabla
+                            document.getElementById('tableBody').appendChild(newRow);
+                
+                            // Limpiar los campos de entrada
+                            document.getElementById('id_Codigo').value = '';
+                            document.getElementById('id_Producto').value = '';
+                            document.getElementById('id_Stock').value = '';
+                            document.getElementById('id_StockMin').value = '';
+                            document.getElementById('id_PreVenta').value = '';
+                
+                            
+                            calcularTotales();
+
+                            document.getElementById('id_Codigo').focus();
+                        }
+                    }
+                    else{
+                        alert("ingresa una cantidad mayor a 0");
+                    }
+                }
+            }
+        });
+        */
+        function calcularTotales() {
+            // Obtener todas las filas de la tabla
+            const filas = document.querySelectorAll("#tableBody tr");
+    
+            // Inicializar variables para subtotal, IVA y total
+            let subtotal = 0;
+    
+            // Iterar sobre todas las filas de la tabla
+            filas.forEach(fila => {
+                // Obtener el total de la fila y sumarlo al subtotal
+                subtotal += parseFloat(fila.querySelector("td:nth-child(5)").textContent);
+            });
+    
+            // Calcular el IVA (16% del subtotal)
+            const iva = subtotal * 0.16;
+    
+            // Calcular el total sumando el subtotal y el IVA
+            const total = subtotal + iva;
+    
+            // Actualizar los valores en los campos de subtotal, IVA y total
+            document.getElementById("Id_Sub").value = subtotal.toFixed(2);
+            document.getElementById("id_Iva").value = iva.toFixed(2);
+            document.getElementById("id_Total").value = total.toFixed(2);
+
+        }
+    
+        // Evento para calcular totales cada vez que se ingrese algo en la tabla
+        document.getElementById("tableBody").addEventListener("input", calcularTotales);
+
+    </script>
+
+{% endblock %}
+
+<!-- -->

@@ -7,73 +7,16 @@
         max-height: 400px; /* ajusta según sea necesario */
         overflow-y: auto; /* habilita el desplazamiento vertical */
         }
+
+        .table thead th {
+            position: sticky;
+            top: 0;
+            background-color: white; /* Elige un color de fondo para que el encabezado sea visible */
+            z-index: 1;
+        }
     </style>
     <p></p>
     <h1> Listado De Usuarios Reistrados </h1>
-    <nav class="navbar bg-body-tertiary fixed-top">
-        <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'Inicio' %}">Inicio</a>
-        
-        <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="offcanvas"
-            data-bs-target="#offcanvasNavbar"
-            aria-controls="offcanvasNavbar"
-            aria-label="Toggle navigation"
-        >
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div
-            class="offcanvas offcanvas-end"
-            tabindex="-1"
-            id="offcanvasNavbar"
-            aria-labelledby="offcanvasNavbarLabel"
-        >
-            <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Pc Accesorios</h5>
-            <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="offcanvas"
-                aria-label="Close"
-            ></button>
-            </div>
-            <div class="offcanvas-body">
-            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="{% url 'Inicio' %}">Inicio</a>
-                    <p></p>
-                    {% if M.Catalago != 0 %}
-                        <a class="nav-link active" aria-current="page" href="{% url 'listarCatalagos' modelo_nombre='cNombre'%}">Catalagos</a>
-                        <p></p>
-                    {% endif %}
-                    {% if M.Personas != 0 %}
-                        <a class="nav-link active" aria-current="page" href="{% url 'listarPersonas' %}">Personas</a>
-                        <p></p>
-                    {% endif %}
-                    {% if M.Usuarios != 0 %}
-                        <a class="nav-link active" aria-current="page" href="{% url 'listarUsuarios' %}">Usuarios</a>
-                        <p></p>
-                    {% endif %}
-                    {% if M.Aplicaciones != 0 %}
-                        <a class="nav-link active" aria-current="page" href="{% url 'listarAplicaciones' %}">Aplicaciones</a>
-                        <p></p>
-                    {% endif %}
-                    {% if M.Accesos != 0 %}
-                        <a class="nav-link active" aria-current="page" href="{% url 'listaraccesos' %}">Accesos</a>
-                        <p></p>
-                    {% endif %}
-                    <a class="nav-link active" aria-current="page" href="{% url 'CambioPassword' %}">Cambiar contraseña</a>
-                    <p></p>
-                    <a class="nav-link active" aria-current="page" href="{% url 'login' %}">Cerrar sesion</a>
-                </li>
-            </ul>
-            </div>
-        </div>
-        </div>
-    </nav>
-
 
     {% if mensaje %}
         {% if mensaje == "No se puede realizar completa informacion"%}
@@ -96,7 +39,8 @@
         </div> 
     {% endif %}
 
-    <p></p>
+    <button id="exportarPDF" class="btn btn-primary">Exportar a PDF</button>
+
 <div class="table-container">
     <table class="table table-striped text-center">
         <thead>
@@ -106,31 +50,23 @@
                 <th scope="col">Nombre</th>
                 <th scope="col">Direccion</th>
                 <th scope="col">Telefono</th>
-                <th scope="col">E_Mail</th>
                 <th scope="col">Genero</th>
                 <th scope="col">Trabajo</th>
-                <th scope="col">Fecha Nacimiento</th>
                 <th scope="col">Tipo de Persona</th>
-                <th scope="col">Aficion</th>
-                <th scope="col">Notas</th>
                 <th scope="col">Opciones</th>
             </tr>
         </thead>
         <tbody>
             {% for persona in personas %}
                 <tr>
-                    <th scope="row"> {{persona.id}} </th>
+                    <th> {{persona.id}} </th>
                     <td>{{persona.Curp}}</td>
                     <td>{{persona.Nombre.Ds}} {{persona.ApellidoPaterno.Ds}} {{persona.ApellidoMaterno.Ds}}</td>
                     <td>{{persona.DireccionNombre}}</td>
                     <td>{{persona.Telefono}}</td>
-                    <td>{{persona.E_mail}}</td>
                     <td>{{persona.Genero.Ds}}</td>
                     <td>{{persona.Trabajo.Ds}}</td>
-                    <td>{{persona.FecNac}}</td>
                     <td>{{persona.TpPerson.Ds}}</td>
-                    <td>{{persona.Aficion.Ds}}</td>
-                    <td>{{persona.Notas}}</td>
                     <td>
                         {% if M.btn_Modificar != 0 %}
                             <a class="btn btn-warning" href="{% url 'editarPersona' persona.id  persona.CvDireccion %}"> Editar </a> 
@@ -145,8 +81,83 @@
         </tbody>
     </table>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
 
     <script>
+        
+        document.getElementById('exportarPDF').addEventListener('click', function () {
+            var { jsPDF } = window.jspdf;
+            var doc = new jsPDF();
+        
+            function drawHeader(doc) {
+                doc.addImage("https://raw.githubusercontent.com/JorgeZamorano215/Imagenes/main/logoAV.png", 'PNG', 10, 10, 40, 40);
+        
+                doc.setFontSize(20);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ABARROTES VAZQUEZ', 105, 20, null, null, 'center');
+        
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'normal');
+                doc.text('VINOS Y LICORES', 105, 28, null, null, 'center');
+        
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'normal');
+                const addressLines = [
+                    'AV. Las Jacarandas',
+                    '8Va. Calle Sur Oriente.',
+                    'Barr Las Chilcas'
+                ];
+                addressLines.forEach((line, index) => {
+                    doc.text(line, 190, 30 + (index * 5), null, null, 'right');
+                });
+            }
+        
+            drawHeader(doc);
+        
+            var rows = [];
+            var headers = [];
+            var excludeColumnIndex = null;
+        
+            // Capturar encabezados y encontrar la columna "Opciones"
+            document.querySelectorAll('.table thead tr th').forEach(function (th, index) {
+                if (th.innerText.trim() === "Opciones") {
+                    excludeColumnIndex = index;
+                } else {
+                    headers.push(th.innerText);
+                }
+            });
+        
+            // Capturar filas, excluyendo la columna "Opciones" según el índice encontrado
+            document.querySelectorAll('.table tbody tr').forEach(function (tr) {
+                var row = [];
+                tr.querySelectorAll('th, td').forEach(function (cell, index) {
+                    if (index !== excludeColumnIndex) { // Excluir solo el índice de "Opciones"
+                        row.push(cell.innerText);
+                    }
+                });
+                rows.push(row);
+            });
+        
+            doc.setFontSize(12);
+            doc.text('Reporte de Personas', 14, 55);
+        
+            doc.autoTable({
+                head: [headers],
+                body: rows,
+                theme: 'grid',
+                styles: { cellPadding: 2, fontSize: 10 },
+                headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0] },
+                margin: { top: 60 },
+                startY: 60,
+                didDrawPage: function (data) {
+                    drawHeader(doc);
+                }
+            });
+        
+            doc.save('reporte_personas.pdf');
+        });
+
         function confirmarEliminacion(usuarioId) {
             var respuesta = confirm('¿Estás seguro de que deseas eliminar el usuario?');
     

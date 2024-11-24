@@ -53,7 +53,7 @@
                     <a class="nav-link active" aria-current="page" href="{% url 'Inicio' %}">Inicio</a>
                     <p></p>
                     {% if Catalago != 0 %}
-                        <a class="nav-link active" aria-current="page" href="{% url 'listarCatalagos' modelo_nombre='cNombre'%}">Catalagos</a>
+                        <a class="nav-link active" aria-current="page" href="{% url 'listarCatalagosVacio' %}">Catalagos</a>
                         <p></p>
                     {% endif %}
                     {% if Personas != 0 %}

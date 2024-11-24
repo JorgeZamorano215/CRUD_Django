@@ -1,0 +1,7 @@
+<!-- create_superuser.html -->
+<h2>Crear Superusuario</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Crear Superusuario</button>
+</form>

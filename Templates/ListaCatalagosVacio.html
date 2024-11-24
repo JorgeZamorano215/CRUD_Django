@@ -18,22 +18,34 @@
     <p></p>
     <h1> Listado De Usuarios Reistrados </h1>
     
-
-
+    
     {% if mensaje %}
-        <div class="alert alert-success" role="alert" class="justify-content-center" style="text-align: center;">
-            {{ mensaje }}
+        {% if mensaje == "No se puede realizar completa informacion"%}
+            <div class="alert alert-danger" role="alert" class="justify-content-center" style="text-align: center;">
+                {{ mensaje }}
+            </div>
+        {% else %}
+            <div class="alert alert-success" role="alert" class="justify-content-center" style="text-align: center;">
+                {{ mensaje }}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if mensaje2 %}
+        <div class="card">
+            <div class="card-header">
+            Mensaje
+            </div>
+            <div class="card-body">
+            <h5 class="card-title">Esta seguro de eliminar a {{Descripcion.Ds}}?</h5>
+            <a a class="btn btn-primary" href="{% url 'aplicarEliminarCatalagos' Descripcion.id %}"> Aceptar </a>  
+            <a class="btn btn-danger" href="{% url 'listarCatalagos' agregar  %}"> Cancelar </a>
+            </div>
         </div>
     {% endif %}
     
     <h1>Mantenimiento De Catalagos </h1>
     <p></p>
-
-    {% if M.btn_Agregar != 0 %}
-        <div class="row col-12 justify-content-end mb-2 pr-0">
-            <a class="btn btn-success col-md-3" href="{% url 'registrarCatalagos' agregar%}">Agregar Nuevo</a>
-        </div> 
-    {% endif %}
 
     <p></p>
     <label for="lang">Catalagos: </label>
@@ -50,18 +62,19 @@
         <div class="row">
             <div class="col-md-4 mx-auto">
                 <div class="form-group">
-                    <input type="text" class="form-control" id="myInput" placeholder="Buscar" value="{{ busqueda }}" autofocus>
+                    <input type="text" class="form-control" id="myInput" placeholder="Buscar"  readonly>
                 </div>
             </div>
         </div>
     </div>
+    
     <p></p>
     <p></p>
     
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-<div class="table-container">
+<div class="table-container">  
     <table class="table table-striped text-center">
         <thead>
             <tr>
@@ -71,51 +84,27 @@
             </tr>
         </thead>
         <tbody>
-            {% for catalago in catalagos %}
-                <tr>
-                    <th scope="row"> {{catalago.id}} </th>
-                    <td>{{catalago.Ds}}</td>
-                    <td>
-                        {% if M.btn_Modificar != 0 %}
-                            <a class="btn btn-warning" href="{% url 'editarCatalagos' agregar catalago.id %}"> Editar </a> 
-                        {% endif %}
-                    
-                        {% if M.btn_Eliminar != 0 %}
-                            <a class="btn btn-danger" href="{% url 'eliminarCatalagos' catalago.id %}"> Eliminar </a> 
-                        {% endif %}
-                    </td>
-                    
-                </tr>
-            {% endfor %}
+            
         </tbody>
     </table>
 </div>
     <script>
+        
         $(document).ready(function(){
           $('#miLista').change(function(){
             var seleccionado = $(this).val();
-            select = seleccionado;
             var url = "{% url 'listarCatalagos' modelo_nombre='PLACEHOLDER' %}".replace('PLACEHOLDER', seleccionado);
             window.location.href = url;
           });
         });
-        
-        document.getElementById("myInput").addEventListener("input", function(event) {
-            var descripcion = event.target.value;
-            var select = "{{agregar}}";
-            if (descripcion === ''){
-                var url = "{% url 'listarCatalagos' modelo_nombre='PLACEHOLDER' %}".replace('PLACEHOLDER', select);;
-                window.location.href = url;
-            }
-            else{
-                var url = "{% url 'listarCatalagosBuscar' busqueda='PLACEHOLDER' %}".replace('PLACEHOLDER', descripcion);
-                window.location.href = url; 
-                console.log(descripcion);
-            }
-        });
 
-        
-        
+        var catalago = "agregar";
+        document.getElementById("myInput").addEventListener("input", function(event) {
+            
+            var descripcion = event.target.value;
+            var url = "{% url 'listarCatalagosBuscar' busqueda='PLACEHOLDER' %}".replace('PLACEHOLDER', descripcion);
+            window.location.href = url;
+        });
 
     </script>
 

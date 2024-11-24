@@ -15,6 +15,8 @@
             z-index: 1;
         }
     </style>
+
+
     <p></p>
     <h1> Listado De Usuarios Reistrados </h1>
     {% if mensaje %}
@@ -31,7 +33,7 @@
         </div>
     {% endif %}
 
-    {% if error2 %}
+    {% if EliminarProducto %}
         <!-- Modal -->
         <div class="modal fade show" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -41,10 +43,10 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <h5>{{error2}}</h5>
+                        <h5>{{EliminarProducto.Mensaje}}</h5>
                     </div>
                     <div class="modal-footer">
-                        <a a class="btn btn-primary" href="{% url 'eliminarusuario' d.id %}"> Aceptar </a> 
+                        <a a class="btn btn-primary" href="{% url 'aplicareliminarproductos' EliminarProducto.id %}"> Aceptar </a> 
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     </div>
                 </div>
@@ -59,12 +61,12 @@
         </script>
     {% endif %}
     
-    <h1>Mantenimiento De Usuarios </h1>
+    <h1>Mantenimiento De Inventarios </h1>
     <p></p>
 
     {% if M.btn_Agregar != 0 %}
      <div class="row col-12 justify-content-end mb-2 pr-0">
-        <a class="btn btn-success col-md-3" href="{% url 'registrarUsuarios'%}">Agregar Nuevo</a>
+        <a class="btn btn-success col-md-3" href="{% url 'registrarproductos'%}">Agregar Nuevo</a>
      </div>  
     {% endif %}
 
@@ -74,33 +76,37 @@
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th scope="col">CvUser</th>
-                    <th scope="col">Nombre</th>
-                    <th scope="col">Login</th>
-                    <th scope="col">FecIni</th>
-                    <th scope="col">FecFin</th>
-                    <th scope="col">EdoCta</th>
-                    <th scope="col">Editar</th>
+                    <th scope="col">Codigo</th>
+                    <th scope="col">Producto</th>
+                    <th scope="col">P. Compra</th>
+                    <th scope="col">P. Venta</th>
+                    <th scope="col">Utilidad</th>
+                    <th scope="col">Cantidad</th>
+                    <th scope="col">Stock</th>
+                    <th scope="col">Proveedor</th>
+                    <th scope="col">Modificar</th>
                     <th scope="col">Eliminar</th>
                 </tr>
             </thead>
             <tbody>
-                {% for usuario in usuarios %}
+                {% for Producto in Productos %}
                     <tr>
-                        <th scope="row"> {{usuario.id}} </th>
-                        <td>{{usuario.nombre.Ds}} {{usuario.aP.Ds}} {{usuario.aM.Ds}} ({{ usuario.tp.Ds }})</td>
-                        <td>{{usuario.Login}}</td>
-                        <td>{{usuario.FecIni}}</td>
-                        <td>{{usuario.FecFin}}</td>
-                        <td>{{usuario.EdoCta}}</td>
+                        <th scope="row"> {{Producto.Codigo}} </th>
+                        <td>{{Producto.Producto}}</td>
+                        <td>${{Producto.PreCompra}}</td>
+                        <td>${{Producto.PreVenta}}</td>
+                        <td>${{Producto.Utilidad}}</td>
+                        <td>{{Producto.Stock}}Und(s)</td>
+                        <td>{{Producto.MinStock}}Und(s)</td>
+                        <td>{{Producto.NombreProveedor}}</td>
                         <td>
                             {% if M.btn_Modificar != 0 %}
-                                <a class="btn btn-warning" href="{% url 'editarusuarios' usuario.id%}"> Editar </a> 
+                                <a class="btn btn-warning" href="{% url 'editarproductos' Producto.id%}"> Editar </a> 
                             {% endif %}
                         </td>
                         <td>
                             {% if M.btn_Eliminar != 0 %}
-                                <a class="btn btn-danger" href="{% url 'validareliminarusuario' usuario.id%}"> Eliminar </a> 
+                                <a class="btn btn-danger" href="{% url 'eliminarproductos' Producto.id%}"> Eliminar </a> 
                             {% endif %}
                         </td>
                         
@@ -109,15 +115,12 @@
             </tbody>
         </table>
     </div>
-
-    <p></p>
-
     <div class="row col-12 justify-content-end mb-2 pr-0">
         <a class="btn btn-primary" href="{% url 'Inicio' %}">Salir</a>
     </div>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
 
 
     <script>
@@ -163,7 +166,7 @@
             
             // Obtener el encabezado (thead)
             document.querySelectorAll('.table thead tr th').forEach(function (th, index) {
-                if (index < 6) { // Solo las primeras 8 columnas
+                if (index < 8) { // Solo las primeras 8 columnas
                     headers.push(th.innerText);
                 }
             });
@@ -172,7 +175,7 @@
             document.querySelectorAll('.table tbody tr').forEach(function (tr) {
                 var row = [];
                 tr.querySelectorAll('td, th').forEach(function (td, index) {
-                    if (index < 6) { // Solo las primeras 8 columnas
+                    if (index < 8) { // Solo las primeras 8 columnas
                         row.push(td.innerText);
                     }
                 });
@@ -181,7 +184,7 @@
         
             // Agregar título "Reporte de Productos" antes de la tabla
             doc.setFontSize(12);
-            doc.text('Reporte de Usuarios', 14, 55); // Título encima de la tabla
+            doc.text('Reporte de Productos', 14, 55); // Título encima de la tabla
         
             // Generar el PDF con autoTable
             doc.autoTable({
@@ -199,63 +202,129 @@
             });
         
             // Descargar el archivo PDF
-            doc.save('reporte_usuarios.pdf');
+            doc.save('reporte_productos.pdf');
         });
-
-/*
+        
+        
+        
+        /*
         document.getElementById('exportarPDF').addEventListener('click', function () {
             var { jsPDF } = window.jspdf;
             var doc = new jsPDF();
-            
+        
+            // Función para dibujar el encabezado en cada página
+            function drawHeader(doc) {
+                doc.setFontSize(20); // Tamaño grande para "ABARROTES VAZQUEZ"
+                doc.setFont('helvetica', 'bold'); // Texto en negritas
+                doc.text('ABARROTES VAZQUEZ', 105, 20, null, null, 'center'); // Centrar el título "ABARROTES VAZQUEZ"
+        
+                doc.setFontSize(14); // Tamaño más pequeño para "VINOS Y LICORES"
+                doc.setFont('helvetica', 'normal'); // Sin negritas
+                doc.text('VINOS Y LICORES', 105, 28, null, null, 'center'); // Centrar "VINOS Y LICORES"
+            }
+        
+            // Dibujar encabezado en la primera página
+            drawHeader(doc);
+        
             // Obtener las filas de la tabla (excepto las columnas "Eliminar" y "Modificar")
             var rows = [];
             var headers = [];
             
             // Obtener el encabezado (thead)
             document.querySelectorAll('.table thead tr th').forEach(function (th, index) {
-                if (index < 6) { // Solo las primeras 6 columnas
+                if (index < 8) { // Solo las primeras 8 columnas
                     headers.push(th.innerText);
                 }
             });
-    
+        
             // Obtener las filas del cuerpo de la tabla (tbody)
             document.querySelectorAll('.table tbody tr').forEach(function (tr) {
                 var row = [];
                 tr.querySelectorAll('td, th').forEach(function (td, index) {
-                    if (index < 6) { // Solo las primeras 6 columnas
+                    if (index < 8) { // Solo las primeras 8 columnas
                         row.push(td.innerText);
                     }
                 });
                 rows.push(row);
             });
-            
+        
             // Generar el PDF con autoTable
             doc.autoTable({
                 head: [headers], // Encabezados
                 body: rows,      // Filas
                 theme: 'grid',
                 styles: { cellPadding: 2, fontSize: 10 },
-                headStyles: { fillColor: [255, 0, 0] },
+                headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0] },
+                margin: { top: 50 },  // Deja espacio para el nombre de la empresa
                 didDrawPage: function (data) {
-                    doc.text('Reporte de Usuarios', 14, 22);
+                    // Redibuja el encabezado en cada página
+                    drawHeader(doc);
+        
+                    // Título en cada página
+                    doc.setFontSize(12);
+                    doc.text('Reporte de Productos', 14, 42); 
                 }
             });
-    
+        
             // Descargar el archivo PDF
-            doc.save('reporte_usuarios.pdf');
+            doc.save('reporte_productos.pdf');
         });
-*/
-        function confirmarEliminacion(usuarioId) {
-            var respuesta = confirm('¿Estás seguro de que deseas eliminar el usuario?');
+        
+        
+        document.getElementById('exportarPDF').addEventListener('click', function () {
+            var { jsPDF } = window.jspdf;
+            var doc = new jsPDF();
+        
+            // Agregar el nombre de la empresa en la parte superior
+            doc.setFontSize(20); // Tamaño grande para "ABARROTES VAZQUEZ"
+            doc.setFont('helvetica', 'bold'); // Texto en negritas
+            doc.text('ABARROTES VAZQUEZ', 105, 20, null, null, 'center'); // Centrar el título "ABARROTES VAZQUEZ"
     
-            if (respuesta) {
-                // Si el usuario hace clic en "Aceptar", redirige al enlace de eliminación.
-                window.location.href = '{% url 'eliminarusuario' 0 %}'.replace('0', usuarioId);
-            } else {
-                // Si el usuario hace clic en "Cancelar", no hagas nada.
-                // Puedes agregar código adicional aquí si es necesario.
-            }
-        }
+            // Agregar "vinos y licores" en un tamaño menor y sin negritas
+            doc.setFontSize(14); // Tamaño más pequeño
+            doc.setFont('helvetica', 'normal'); // Sin negritas
+            doc.text('VINOS Y LICORES', 105, 28, null, null, 'center'); // Centrar "vinos y licores"
+        
+            // Obtener las filas de la tabla (excepto las columnas "Eliminar" y "Modificar")
+            var rows = [];
+            var headers = [];
+            
+            // Obtener el encabezado (thead)
+            document.querySelectorAll('.table thead tr th').forEach(function (th, index) {
+                if (index < 8) { // Solo las primeras 6 columnas
+                    headers.push(th.innerText);
+                }
+            });
+        
+            // Obtener las filas del cuerpo de la tabla (tbody)
+            document.querySelectorAll('.table tbody tr').forEach(function (tr) {
+                var row = [];
+                tr.querySelectorAll('td, th').forEach(function (td, index) {
+                    if (index < 8) { // Solo las primeras 6 columnas
+                        row.push(td.innerText);
+                    }
+                });
+                rows.push(row);
+            });
+        
+            // Generar el PDF con autoTable
+            doc.autoTable({
+                head: [headers], // Encabezados
+                body: rows,      // Filas
+                theme: 'grid',
+                styles: { cellPadding: 2, fontSize: 10 },
+                headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0] },
+                margin: { top: 50 },  // Deja espacio para el nombre de la empresa
+                didDrawPage: function (data) {
+                    // Este código se ejecuta en cada página
+                    doc.setFontSize(12);
+                    doc.text('Reporte de Productos', 14, 42); // Título en cada página
+                }
+            });
+        
+            // Descargar el archivo PDF
+            doc.save('reporte_productos.pdf');
+        });
+        */
     </script>
-
 {% endblock %}

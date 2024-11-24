@@ -1,0 +1,188 @@
+{% extends "home.html" %} {% block content %}
+    <h1>ii</h1>
+    
+    
+    {% if error %}
+        <p></p>
+        <div class="alert alert-danger" role="alert" class="justify-content-center" style="text-align: center;">
+            {{error}}
+        </div>
+    {% endif %}
+
+    
+    
+
+    {% if Titulo == "Registro de Inventario" %}
+        <h1>{{Titulo}}</h1>
+
+        <div class="content container">
+            <form action="/registrarproductos/" method="POST">
+                {% csrf_token %} 
+                
+                <p>
+                    <label for="id_Codigo">Codigo del Producto:</label>
+                    <input type="text" name="Codigo" maxlength="13" required="" id="id_Codigo" value="{{ProductoEditar.Codigo}}">
+                </p>
+
+                <p>
+                    <label for="id_Producto">Nombre del Producto:</label>
+                    <input type="text" name="Producto" maxlength="50" required="" id="id_Producto" value="{{ProductoEditar.Producto}}">
+                </p>
+                
+                <p>
+                    <label for="id_FechaCaducidad">Fecha de Caducidad:</label>
+                    <input type="date" name="FechaCaducidad" value="{{ProductoEditar.FechaCaducidad}}" required="" id="FechaCaducidad">
+                </p>
+
+                <p>
+                    <label for="id_PreCompra">Precio de Compra:</label>
+                    <input type="number" name="PreCompra" step="any" required="" id="id_PreCompra" value="{{ProductoEditar.PreCompra}}">
+                </p>
+
+                <p>
+                    <label for="id_PreVenta">Precio de Venta:</label>
+                    <input type="number" name="PreVenta" step="any" required="" id="id_PreVenta" value="{{ProductoEditar.PreVenta}}">
+                </p>
+
+                <p>
+                    <label for="id_Stock">Cantidad:</label>
+                    <input type="number" name="Stock" required="" id="id_Stock" value="{{ProductoEditar.Stock}}">
+                </p>
+
+                <p>
+                    <label for="id_MinStock">Stock:</label>
+                    <input type="number" name="MinStock" required="" id="id_MinStock" value="{{ProductoEditar.MinStock}}">
+                </p>
+
+                <label for="lang">Proveedor</label>
+                <select name="Proveedor" id="id_Proveedor">
+                    <option value="{{ProductoEditar.Proveedor}}">{{ProductoEditar.NombreProveedor}}</option>
+                    {% for Proveedor in Proveedores %}
+                        <option value="{{ Proveedor.id }}">
+                            {{ Proveedor.NombreProveedor }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <p></P>
+                
+                <div class="d-flex align-items-center justify-content-center">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                    <h1 style="color: white;">aa</h1>
+                    <input class="btn btn-danger" type="reset" value="Cancelar">
+                </div>
+
+            </form> 
+        </div>
+    {% endif %}
+
+    {% if Titulo == "Modificacion de Inventario" %}
+        <h1>{{Titulo}}</h1>
+
+        <div class="content container">
+            <form action="{% url 'editarproductos' ProductoEditar.id %}" method="POST">
+                {% csrf_token %} 
+                
+                <p>
+                    <label for="id_Codigo">Codigo del Producto:</label>
+                    <input type="text" name="Codigo" maxlength="13" required="" id="id_Codigo" value="{{ProductoEditar.Codigo}}">
+                </p>
+
+                <p>
+                    <label for="id_Producto">Nombre del Producto:</label>
+                    <input type="text" name="Producto" maxlength="50" required="" id="id_Producto" value="{{ProductoEditar.Producto}}">
+                </p>
+
+                <p>
+                    <label for="id_FechaCaducidad">Fecha de Caducidad:</label>
+                    <input type="date" name="FechaCaducidad" value="{{ProductoEditar.Caducidad}}" required="" id="id_FechaCaducidad">
+                </p>
+
+                <p>
+                    <label for="id_PreCompra">Precio de Compra:</label>
+                    <input type="number" name="PreCompra" step="any" required="" id="id_PreCompra" value="{{ProductoEditar.PreCompra}}">
+                </p>
+
+                <p>
+                    <label for="id_PreVenta">Precio de Venta:</label>
+                    <input type="number" name="PreVenta" step="any" required="" id="id_PreVenta" value="{{ProductoEditar.PreVenta}}">
+                </p>
+
+                <p>
+                    <label for="id_Stock">Cantidad:</label>
+                    <input type="number" name="Stock" required="" id="id_Stock" value="{{ProductoEditar.Stock}}">
+                </p>
+
+                <p>
+                    <label for="id_MinStock">Stock:</label>
+                    <input type="number" name="MinStock" required="" id="id_MinStock" value="{{ProductoEditar.MinStock}}">
+                </p>
+
+                <label for="lang">Proveedor</label>
+                <select name="Proveedor" id="id_Proveedor">
+                    <option value="{{ProductoEditar.Proveedor}}">{{ProductoEditar.NombreProveedor}}</option>
+                    {% for Proveedor in Proveedores %}
+                        <option value="{{ Proveedor.id }}">
+                            {{ Proveedor.NombreProveedor }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <p></P>
+                
+                <div class="d-flex align-items-center justify-content-center">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                    <h1 style="color: white;">aa</h1>
+                    <input class="btn btn-danger" type="reset" value="Cancelar">
+                </div>
+
+            </form> 
+        </div>
+    {% endif %}
+
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">Codigo</th>
+                <th scope="col">Producto</th>
+                <th scope="col">P. Compra</th>
+                <th scope="col">P. Venta</th>
+                <th scope="col">Utilidad</th>
+                <th scope="col">Cantidad</th>
+                <th scope="col">Stock</th>
+                <th scope="col">Proveedor</th>
+                <th scope="col">Modificar</th>
+                <th scope="col">Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for Producto in Productos %}
+                <tr>
+                    <th scope="row"> {{Producto.Codigo}} </th>
+                    <td>{{Producto.Producto}}</td>
+                    <td>${{Producto.PreCompra}}</td>
+                    <td>${{Producto.PreVenta}}</td>
+                    <td>${{Producto.Utilidad}}</td>
+                    <td>{{Producto.Stock}}Und(s)</td>
+                    <td>{{Producto.MinStock}}Und(s)</td>
+                    <td>{{Producto.NombreProveedor}}</td>
+                    <td>
+                        {% if M.btn_Modificar != 0 %}
+                            <a class="btn btn-warning" href="{% url 'editarproductos' Producto.id%}"> Editar </a> 
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if M.btn_Eliminar != 0 %}
+                            <a class="btn btn-danger" href="{% url 'eliminarproductos' Producto.id%}"> Eliminar </a> 
+                        {% endif %}
+                    </td>
+                    
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <p></P>
+    <div class="row col-12 justify-content-end mb-2 pr-0">
+        <a class="btn btn-primary" href="{% url 'listarproductos' %}">Regresar</a>
+    </div>
+{% endblock %}

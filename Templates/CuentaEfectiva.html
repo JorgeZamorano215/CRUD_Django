@@ -1,0 +1,214 @@
+{% extends "home.html" %} 
+
+{% block content %}
+    <style>
+        /* Establece un tamaño máximo de altura para el contenedor de la tabla */
+        .table-container {
+        max-height: 300px; /* ajusta según sea necesario */
+        overflow-y: auto; /* habilita el desplazamiento vertical */
+        }
+
+        .table thead th {
+            position: sticky;
+            top: 0;
+            background-color: white; /* Elige un color de fondo para que el encabezado sea visible */
+            z-index: 1;
+        }
+    </style>
+
+    <p></P>
+    <p></P>
+    <p></P>
+    <h1>Venta</h1>
+    <h1>Cuenta Efectiva</h1>
+    
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#examplePedido" data-pedido-id="">
+            Gasto
+        </button>
+    </div>
+
+    
+    <!-- Modal -->
+    <div class="modal fade" id="examplePedido" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Registro De Gastos</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="conteiner-fluid row">
+                    <form class="col-12 p-4" method="POST" action="{% url 'procesar_gasto' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-sm-5">
+                                <label for="lang">Empleado</label>
+                                <select name="Empleado" id="id_Empleado" class="form-control">
+                                    <option value="{{r.CvPerson}}">{{r.NombreEmpleado}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <p></p>
+                        <div class="row">
+                            <div class="col-sm-2">
+                                <input type="number" name="Capital" value="{{datosCajaGrande.Actual}}" step="any" required="" id="id_Capital" class="form-control" style="display: none;">
+                            </div>
+                            <div class="form-group row">
+                                <label for="EfectivoRecibido">Monto Del Gasto</label>
+                                <div class="col-sm-4">
+                                    <input type="number" name="Gasto" step="any" required="" id="id_Gasto" class="form-control">
+                                    <!-- Aquí se mostrará el mensaje de error -->
+                                    <div id="gasto-error" class="text-danger"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <p></p>
+                        <div class="row">
+                            <div class="col-sm-8">
+                                <label for="id_ObservecionG">Observacion General</label>
+                                <input type="text" name="ObservecionG" required="" id="id_ObservecionG"  class="form-control">
+                            </div>
+                        </div>            
+                        <p></p>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <button type="button" class="btn btn-success" id="pedirBtn">Guardar</button>
+                        </div>
+                        <p></p>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Salir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div class="table-container">  
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">Cv</th>
+                <th scope="col">Anterior</th>
+                <th scope="col">Monto</th>
+                <th scope="col">Actual</th>
+                <th scope="col">Tipo de Transaccion</th>
+                <th scope="col">Concepto</th>
+                <th scope="col">InfConcepto</th>
+                <th scope="col">Empleado</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Observacion</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movimiento in movimientos %}
+                <tr>
+                    <th scope="row"> {{movimiento.id}} </th>
+                    <td>${{movimiento.Anterior}}</td>
+                    <td>${{movimiento.Monto}}</td>
+                    <td>${{movimiento.Actual}}</td>
+                    <td>{{movimiento.TpTransaccion.Ds}}</td>
+                    <td>{{movimiento.Concepto.Ds}}</td>
+                    <td>{{movimiento.InfConcepto}}</td>
+                    <td>{{movimiento.nombre.Ds}} {{movimiento.aP.Ds}} {{movimiento.aM.Ds}}</td>
+                    <td>{{movimiento.Fecha}}</td>
+                    <td>{{movimiento.Observacion}}</td>
+                    
+                    
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>  
+
+    <div class="row col-12 justify-content-end mb-2 pr-0">
+        <a class="btn btn-primary" href="{% url 'Inicio' %}">Salir</a>
+    </div>
+
+    <script>
+        function ValidacionGasto() {
+            // Obtener los valores y convertirlos a números flotantes, asignar 0 si están vacíos
+            const gasto = parseFloat(document.getElementById('id_Gasto').value) || 0;
+            const capital = parseFloat(document.getElementById('id_Capital').value) || 0;
+            const errorDiv = document.getElementById('gasto-error'); // Div donde se mostrará el error
+        
+            // Limpiar el mensaje de error antes de validar
+            errorDiv.textContent = '';
+        
+            let validacion = 1;  // Usar `let` ya que el valor puede cambiar
+        
+            if (gasto < 0) {
+                errorDiv.textContent = "No ingreses números negativos";
+                document.getElementById('id_Gasto').value = '';
+                validacion = 0;
+            } else if (gasto > capital) {
+                errorDiv.textContent = "El monto del gasto es mayor que el capital disponible";
+                document.getElementById('id_Gasto').value = '';
+                validacion = 0;
+            }
+        
+            return validacion;
+        }
+
+        document.getElementById('id_Gasto').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();  // Evitar el envío del formulario al presionar Enter
+                ValidacionGasto();
+            }
+        });
+
+        // Validación cuando se intenta enviar el formulario
+        document.getElementById('pedirBtn').addEventListener('click', function() {
+            if (ValidacionGasto()) {
+                gastar(); // Enviar el formulario si es válido
+            }
+        });
+
+        function gastar() {
+            // Capturar los datos de las tablas
+            const datosMaestra = capturarDatosMaestra();
+
+            console.log('Datos Maestra:', datosMaestra);
+
+            // Obtener el CSRF token
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            // Enviar los datos al backend
+            fetch('/realizarGasto/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    maestra: datosMaestra
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Gasto registrado');
+                    // Aquí puedes redirigir a una página de confirmación o hacer cualquier otra acción
+                    window.location.href = "{% url 'listarCajaGrande' %}";
+                } else {
+                    alert('Hubo un error al registrar el gasto');
+                }
+            })
+            .catch(error => {
+                console.error('Error al enviar datos de gasto:', error);
+                alert('Hubo un error al gasto');
+            });
+        }
+
+        function capturarDatosMaestra() {
+            const datosMaestra = {
+                Empleado: parseInt(document.getElementById('id_Empleado').value),
+                Monto: parseFloat(document.getElementById('id_Gasto').value),
+                Observacion: document.getElementById('id_ObservecionG').value
+            };
+
+            return datosMaestra;
+        }
+
+
+    </script>
+
+{% endblock %}

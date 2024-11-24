@@ -1,0 +1,1591 @@
+{% extends "home.html" %} 
+
+{% block content %}
+    <style>
+        /* Establece un tamaño máximo de altura para el contenedor de la tabla */
+        .table-container {
+        max-height: 300px; /* ajusta según sea necesario */
+        overflow-y: auto; /* habilita el desplazamiento vertical */
+        }
+
+        .table thead th {
+            position: sticky;
+            top: 0;
+            background-color: white; /* Elige un color de fondo para que el encabezado sea visible */
+            z-index: 1;
+        }
+    </style>
+
+    <p></P>
+    <p></P>
+    <p></P>
+    <h1>Venta</h1>
+    <h1>Reportes</h1>
+    
+    {% if M.btn_ventas != 0 %}
+        <p class="d-inline-flex gap-1">
+            <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+            Reporte de Ventas
+            </a>
+        </p>  
+    {% endif %}
+
+
+    
+    <div class="collapse" id="collapseExample">
+        <div class="row">
+            <label for="id_Periodo">Periodo De Ventas</label>
+            <div class="col-auto">
+              <label for="inputFecIni" class="col-form-label">De</label>
+            </div>
+            <div class="col-auto">
+              <input type="date" name="FecIniV" id="IdFecIniV" class="form-control">
+            </div>
+            
+            <div class="col-auto">
+              <label for="inputFecFin" class="col-form-label">Hasta</label>
+            </div>
+            <div class="col-auto">
+              <input type="date" name="FecFinV" id="IdFecFinV" class="form-control">
+            </div>
+            
+            <div class="col-auto text-end">
+                <button id="exportarPDFVentas" class="btn btn-primary">Exportar a PDF</button>
+            </div>
+
+        </div>
+
+        <p></p>
+        <div class="card card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Empleado</th>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>SubTotal</th>
+                        <th>Impuesto</th>
+                        <th>Total</th>
+                        <th>Detalle</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    {% for venta in ventas %}
+                    <tr data-venta-id="{{ venta.id }}">
+                        <td>{{ venta.id }}</td>
+                        <td>{{ venta.NombreEmpleados }}</td>
+                        <td>{{ venta.NombreClietes }}</td>
+                        <td>{{ venta.FechaVenta }}</td>
+                        <td>${{ venta.SubTotal }}</td>
+                        <td>${{ venta.Impuesto }}</td>
+                        <td>${{ venta.Total }}</td>
+                        <td>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-venta-id="{{ venta.id }}">
+                                Detalle
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        
+      </div>
+    </div>
+    
+    
+    {% if M.btn_pedidos != 0 %}
+        <p class="d-inline-flex gap-1">
+            <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapsePedido" role="button" aria-expanded="false" aria-controls="collapsePedido">
+            Reporte de Pedido
+            </a>
+        </p>  
+    {% endif %}
+    
+    
+    <div class="collapse" id="collapsePedido">
+        <div class="row">
+            <label for="id_Periodo">Periodo De Pedidos</label>
+            <div class="col-auto">
+              <label for="inputFecIni" class="col-form-label">De</label>
+            </div>
+            <div class="col-auto">
+              <input type="date" name="FecIniP" id="IdFecIniP" class="form-control">
+            </div>
+            
+            <div class="col-auto">
+              <label for="inputFecFin" class="col-form-label">Hasta</label>
+            </div>
+            <div class="col-auto">
+              <input type="date" name="FecFinP" id="IdFecFinP" class="form-control">
+            </div>
+            
+            <div class="col-auto text-end">
+                <button id="exportarPDFPedidos" class="btn btn-primary">Exportar a PDF</button>
+            </div>
+
+        </div>
+
+        <p></p>
+
+        <div class="card card-body">
+            <table class="table table-striped">
+                </thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Empleado</th>
+                        <th>Proveedor</th>
+                        <th>Fecha Pedido</th>
+                        <th>Fecha Entrega</th>
+                        <th>SubTotal</th>
+                        <th>Impuesto</th>
+                        <th>Total</th>
+                        <th>Anticipo</th>
+                        <th>Pagado</th>
+                        <th>Recibido</th>
+                        <th>Detalle</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBodyPedidos">
+                    {% for pedido in pedidos %}
+                    <tr data-pedido-id="{{ pedido.id }}">
+                        <td>{{ pedido.id }}</td>
+                        <td>{{ pedido.NombreEmpleados }}</td>
+                        <td>{{ pedido.NombreProveedor }}</td>
+                        <td>{{ pedido.FechaPedido }}</td>
+                        <td>{{ pedido.FechaEntrega }}</td>
+                        <td>${{ pedido.SubTotal }}</td>
+                        <td>${{ pedido.Impuesto }}</td>
+                        <td>${{ pedido.Total }}</td>
+                        <td>${{ pedido.Anticipo }}</td>
+                        <td>{{ pedido.estadoPagado }}</td>
+                        <td>{{ pedido.estadoRecibido }}</td>
+                        <td>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#examplePedido" data-pedido-id="{{ pedido.id }}">
+                                Detalle
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <p class="d-inline-flex gap-1">
+        <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseCompra" role="button" aria-expanded="false" aria-controls="collapseCompra">
+        Reporte de Compras
+        </a>
+    </p> 
+    
+    
+    <div class="collapse" id="collapseCompra">
+        <div class="row">
+            <label for="id_Periodo">Periodo De Compra</label>
+            <div class="col-auto">
+              <label for="inputFecIni" class="col-form-label">De</label>
+            </div>
+            <div class="col-auto">
+              <input type="date" name="FecIniC" id="IdFecIniC" class="form-control">
+            </div>
+            
+            <div class="col-auto">
+              <label for="inputFecFin" class="col-form-label">Hasta</label>
+            </div>
+            <div class="col-auto">
+              <input type="date" name="FecFinC" id="IdFecFinC" class="form-control">
+            </div>
+            
+            <div class="col-auto text-end">
+                <button id="exportarPDFCompras" class="btn btn-primary">Exportar a PDF</button>
+            </div>
+
+        </div>
+
+        <p></p>
+
+        <div class="card card-body">
+            <table class="table table-striped">
+                </thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Empleado</th>
+                        <th>Proveedor</th>
+                        <th>Fecha Pedido</th>
+                        <th>Fecha Compra</th>
+                        <th>SubTotal</th>
+                        <th>Impuesto</th>
+                        <th>Total</th>
+                        <th>Observacion</th>
+                        <th>Detalle</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBodyCompras">
+                    {% for compra in compras %}
+                    <tr data-compra-id="{{ compra.id }}">
+                        <td>{{ compra.id }}</td>
+                        <td>{{ compra.NombreEmpleados }}</td>
+                        <td>{{ compra.NombreProveedor }}</td>
+                        <td>{{ compra.FechaPedido }}</td>
+                        <td>{{ compra.FechaRecepcion }}</td>
+                        <td>${{ compra.SubTotal }}</td>
+                        <td>${{ compra.Impuesto }}</td>
+                        <td>${{ compra.Total }}</td>
+                        <td>{{ compra.Observacion }}</td>
+                        <td>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleCompra" data-compra-id="{{ compra.id }}">
+                                Detalle
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <p class="d-inline-flex gap-1">
+        <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseEfectivo" role="button" aria-expanded="false" aria-controls="collapseEfectivo">
+        Reporte de Cuenta
+        </a>
+    </p> 
+    
+    
+    <div class="collapse" id="collapseEfectivo">
+        <div class="row">
+            <label for="id_Periodo">Periodo De Movimiento</label>
+            <div class="col-auto">
+              <label for="inputFecIni" class="col-form-label">De</label>
+            </div>
+            <div class="col-auto">
+              <input type="date" name="FecIniE" id="IdFecIniE" class="form-control">
+            </div>
+            
+            <div class="col-auto">
+              <label for="inputFecFin" class="col-form-label">Hasta</label>
+            </div>
+            <div class="col-auto">
+              <input type="date" name="FecFinE" id="IdFecFinE" class="form-control">
+            </div>
+            
+            <div class="col-auto text-end">
+                <button id="exportarPDFEfectivo" class="btn btn-primary">Exportar a PDF</button>
+            </div>
+            
+            
+
+        </div>
+
+        <p></p>
+
+        <div class="card card-body">
+            <table class="table table-striped">
+                </thead>
+                    <tr>
+                        <th>Cv</th>
+                        <th>Anterior</th>
+                        <th>Monto</th>
+                        <th>Actual</th>
+                        <th>Tipo de Transaccion</th>
+                        <th>Concepto</th>
+                        <th>InfConcepto</th>
+                        <th>Empleado</th>
+                        <th>Fecha</th>
+                        <th>Observacion</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBodyEfectivo">
+                    {% for movimiento in movimientos %}
+                        <tr data-efectivo-id="{{ movimiento.id }}">
+                            <th scope="row"> {{movimiento.id}} </th>
+                            <td>${{movimiento.Anterior}}</td>
+                            <td>${{movimiento.Monto}}</td>
+                            <td>${{movimiento.Actual}}</td>
+                            <td>{{movimiento.TpTransaccion.Ds}}</td>
+                            <td>{{movimiento.Concepto.Ds}}</td>
+                            <td>{{movimiento.InfConcepto}}</td>
+                            <td>{{movimiento.nombre.Ds}} {{movimiento.aP.Ds}} {{movimiento.aM.Ds}}</td>
+                            <td>{{movimiento.Fecha}}</td>
+                            <td>{{movimiento.Observacion}}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <p class="d-inline-flex gap-1">
+        <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseProducMov" role="button" aria-expanded="false" aria-controls="collapseProducMov">
+        Productos con menos movimento
+        </a>
+    </p> 
+    
+    
+    <div class="collapse" id="collapseProducMov">
+        
+        <div class="col-auto text-end">
+            <button id="exportarPDFProductosMovimiento" class="btn btn-primary">Exportar a PDF</button>
+        </div>
+        
+        
+        <p></p>
+
+        <div class="card card-body">
+            <table class="table table-striped">
+                </thead>
+                    <tr>
+                        <th>Codigo</th>
+                        <th>Producto</th>
+                        <th>Cantidad Vendida</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBodyProducMov">
+                    {% for producto in productos_menos_vendidos %}
+                        <tr data-ProducMov-id="{{ producto.codigo }}">
+                            <td scope="row">{{ producto.codigo }}</td>
+                            <td>{{ producto.nombre }}</td>
+                            <td>{{ producto.total_vendido }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3">No hay productos con ventas bajas</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+      <!-- Button trigger modal -->
+  
+  
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Detalle De La Venta</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">Codigo</th>
+                                <th scope="col">Producto</th>
+                                <th scope="col">Precio</th>
+                                <th scope="col">Cantidad</th>
+                                <th scope="col">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody1">
+                            <!-- Filas generadas dinámicamente aparecerán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Salir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <p class="d-inline-flex gap-1">
+        <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseCaducidad" role="button" aria-expanded="false" aria-controls="collapseCaducidad">
+        Productos por caducar
+        </a>
+    </p> 
+    
+    
+    <div class="collapse" id="collapseCaducidad">
+        <div class="row">
+            <label for="id_Periodo">Periodo De Caducidad</label>
+            <div class="col-auto">
+              <label for="inputFecIni" class="col-form-label">De</label>
+            </div>
+            <div class="col-auto">
+              <input type="date" name="FecIniCad" id="IdFecIniCad" class="form-control">
+            </div>
+            
+            <div class="col-auto">
+              <label for="inputFecFin" class="col-form-label">Hasta</label>
+            </div>
+            <div class="col-auto">
+              <input type="date" name="FecFinCad" id="IdFecFinCad" class="form-control">
+            </div>
+            
+            <div class="col-auto text-end">
+                <button id="exportarPDFProductosCaducidad" class="btn btn-primary">Exportar a PDF</button>
+            </div>
+
+        </div>
+
+        <p></p>
+
+        <div class="card card-body">
+            <table class="table table-striped">
+                </thead>
+                    <tr>
+                        <th>Codigo</th>
+                        <th>Producto</th>
+                        <th>Fecha de Caducidad</th>
+                        <th>Cantidad existente</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBodyCaducidad">
+                    {% for caducidad in caducidades %}
+                        <tr data-caducidad-id="{{ caducidad.Codigo }}">
+                            <td scope="row">{{ caducidad.Codigo }}</td>
+                            <td>{{ caducidad.Producto }}</td>
+                            <td>{{ caducidad.FechaCaducidad }}</td>
+                            <td>{{ caducidad.Stock }}</td>
+                        </tr>
+                    
+                    {% endfor %}
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+  <!-- Modal -->
+<div class="modal fade" id="examplePedido" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Detalle Del Pedido</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Codigo</th>
+                            <th scope="col">Producto</th>
+                            <th scope="col">Precio</th>
+                            <th scope="col">Cantidad</th>
+                            <th scope="col">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBodyDetallePedido">
+                        <!-- Filas generadas dinámicamente aparecerán aquí -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Salir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+  <!-- Modal -->
+<div class="modal fade" id="exampleCompra" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Detalle De la Compra</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Codigo</th>
+                            <th scope="col">Producto</th>
+                            <th scope="col">Precio</th>
+                            <th scope="col">Cantidad</th>
+                            <th scope="col">Total</th>
+                            <th scope="col">Observacion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBodyDetalleCompra">
+                        <!-- Filas generadas dinámicamente aparecerán aquí -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Salir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="row col-12 justify-content-end mb-2 pr-0">
+        <a class="btn btn-primary" href="{% url 'Inicio' %}">Salir</a>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        //Exportecion de PDF de los reportes
+        document.getElementById('exportarPDFVentas').addEventListener('click', function () { 
+            var { jsPDF } = window.jspdf;
+            var doc = new jsPDF();
+        
+            // Función para dibujar el encabezado en cada página
+            function drawHeader(doc) {
+                doc.addImage("https://raw.githubusercontent.com/JorgeZamorano215/Imagenes/main/logoAV.png", 'PNG', 10, 10, 40, 40);
+                doc.setFontSize(20);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ABARROTES VAZQUEZ', 105, 20, null, null, 'center');
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'normal');
+                doc.text('VINOS Y LICORES', 105, 28, null, null, 'center');
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'normal');
+                const addressLines = [
+                    'AV. Las Jacarandas',
+                    '8Va. Calle Sur Oriente.',
+                    'Barr Las Chilcas'
+                ];
+                addressLines.forEach((line, index) => {
+                    doc.text(line, 190, 30 + (index * 5), null, null, 'right');
+                });
+        
+                const fechaInicioV = document.getElementById("IdFecIniV").value;
+                const fechaFinV = document.getElementById("IdFecFinV").value;
+        
+                // Verificar si las fechas están vacías
+                if (fechaInicioV === "" && fechaFinV === "") {
+                    doc.text('Reporte de ventas: Todas las ventas', 105, 50, null, null, 'center');
+                } else {
+                    doc.text(`Reporte de ventas período: ${fechaInicioV} - ${fechaFinV}`, 105, 50, null, null, 'center');
+                }
+            }
+        
+            // Dibujar encabezado en la primera página
+            drawHeader(doc);
+        
+            var ventas = document.querySelectorAll('.table tbody tr');
+            var promises = [];
+            var startY = 60; // Posición inicial en el PDF
+        
+            ventas.forEach(function (tr) {
+                var ventaId = tr.getAttribute('data-venta-id');
+        
+                if (!ventaId) {
+                    console.error('No se encontró el atributo data-venta-id en la fila', tr);
+                    return;
+                }
+        
+                // Crear la fila para los datos principales de la venta
+                var ventaRow = [];
+                tr.querySelectorAll('td, th').forEach(function (td) {
+                    ventaRow.push(td.innerText);
+                });
+        
+                // Dibujar los datos de la venta en el PDF
+                doc.autoTable({
+                    head: [['ID', 'Empleado', 'Cliente', 'Fecha', 'Subtotal', 'Impuesto', 'Total']],
+                    body: [[ventaRow[0], ventaRow[1], ventaRow[2], ventaRow[3], ventaRow[4], ventaRow[5], ventaRow[6]]],
+                    startY: startY,
+                    theme: 'grid',
+                    margin: { top: 10 },
+                    styles: { fontSize: 10 }
+                });
+        
+                startY = doc.lastAutoTable.finalY + 5; // Espacio para separación
+        
+                // Hacer la consulta para obtener los detalles de la venta
+                var fetchPromise = fetch(`/detalleVenta/${ventaId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.error) {
+                            // Crear las filas para los productos de la venta
+                            var detalleRows = [];
+                            data.detalleVenta.forEach(detalle => {
+                                detalleRows.push([
+                                    detalle.codigo, 
+                                    detalle.producto, 
+                                    detalle.precio, 
+                                    detalle.cantidad, 
+                                    detalle.subtotal
+                                ]);
+                            });
+        
+                            // Agregar los detalles (productos) justo debajo de la información de la venta
+                            doc.autoTable({
+                                head: [['Código', 'Producto', 'Precio', 'Cantidad', 'Subtotal']],
+                                body: detalleRows,
+                                startY: startY,
+                                theme: 'grid',
+                                margin: { top: 10 },
+                                styles: { fontSize: 10 }
+                            });
+        
+                            startY = doc.lastAutoTable.finalY + 10; // Actualizamos el punto de inicio para la siguiente venta
+                        } else {
+                            console.error('Error en los datos de detalle de venta:', data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                    });
+        
+                promises.push(fetchPromise);
+            });
+        
+            // Esperar a que todas las promesas (fetches) se completen antes de descargar el PDF
+            Promise.all(promises).then(() => {
+                // Descargar el archivo PDF
+                doc.save('reporte_ventas.pdf');
+            });
+        });
+
+        document.getElementById('exportarPDFPedidos').addEventListener('click', function () { 
+            var { jsPDF } = window.jspdf;
+            var doc = new jsPDF();
+        
+            // Función para dibujar el encabezado en cada página
+            function drawHeader(doc) {
+                doc.addImage("https://raw.githubusercontent.com/JorgeZamorano215/Imagenes/main/logoAV.png", 'PNG', 10, 10, 40, 40);
+                doc.setFontSize(20);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ABARROTES VAZQUEZ', 105, 20, null, null, 'center');
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'normal');
+                doc.text('VINOS Y LICORES', 105, 28, null, null, 'center');
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'normal');
+                const addressLines = [
+                    'AV. Las Jacarandas',
+                    '8Va. Calle Sur Oriente.',
+                    'Barr Las Chilcas'
+                ];
+                addressLines.forEach((line, index) => {
+                    doc.text(line, 190, 30 + (index * 5), null, null, 'right');
+                });
+        
+                const fechaInicioP = document.getElementById("IdFecIniP").value;
+                const fechaFinP = document.getElementById("IdFecFinP").value;
+        
+                // Verificar si las fechas están vacías
+                if (fechaInicioP === "" && fechaFinP === "") {
+                    doc.text('Reporte de pedidos: Todos los pedidos', 105, 50, null, null, 'center');
+                } else {
+                    doc.text(`Reporte de pedidos período: ${fechaInicioP} - ${fechaFinP}`, 105, 50, null, null, 'center');
+                }
+            }
+        
+            // Dibujar encabezado en la primera página
+            drawHeader(doc);
+        
+            var pedidos = document.querySelectorAll('#tableBodyPedidos tr'); // Selección corregida para asegurar que apunta al cuerpo correcto
+            var promises = [];
+            var startY = 60; // Posición inicial en el PDF
+        
+            pedidos.forEach(function (tr, index) {
+                var pedidoId = tr.getAttribute('data-pedido-id');
+                
+                // Verificar que la fila tiene un id de pedido
+                if (!pedidoId) {
+                    console.error(`No se encontró el atributo data-pedido-id en la fila ${index}`);
+                    return;
+                }
+        
+                // Crear la fila para los datos principales del pedido
+                var pedidoRow = [];
+                tr.querySelectorAll('td').forEach(function (td) {
+                    pedidoRow.push(td.innerText);
+                });
+        
+                // Verificar que la fila tiene datos
+                console.log('Datos del pedido:', pedidoRow);
+        
+                // Dibujar los datos del pedido en el PDF
+                doc.autoTable({
+                    head: [['ID', 'Empleado', 'Proveedor', 'Fecha Pedido', 'Fecha Entrega', 'Subtotal', 'Impuesto', 'Total', 'Anticipo', 'Pagado', 'Recibido']],
+                    body: [[pedidoRow[0], pedidoRow[1], pedidoRow[2], pedidoRow[3], pedidoRow[4], pedidoRow[5], pedidoRow[6], pedidoRow[7], pedidoRow[8], pedidoRow[9], pedidoRow[10]]],
+                    startY: startY,
+                    theme: 'grid',
+                    margin: { top: 10 },
+                    styles: { fontSize: 10 }
+                });
+        
+                startY = doc.lastAutoTable.finalY + 5; // Espacio para separación
+        
+                // Hacer la consulta para obtener los detalles del pedido
+                var fetchPromise = fetch(`/detallePedido/${pedidoId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.error) {
+                            // Crear las filas para los productos del pedido
+                            var detalleRows = [];
+                            data.detallePedido.forEach(detalle => {
+                                detalleRows.push([
+                                    detalle.codigo, 
+                                    detalle.producto, 
+                                    detalle.precio, 
+                                    detalle.cantidad, 
+                                    detalle.subtotal
+                                ]);
+                            });
+        
+                            // Agregar los detalles (productos) justo debajo de la información del pedido
+                            doc.autoTable({
+                                head: [['Código', 'Producto', 'Precio', 'Cantidad', 'Subtotal']],
+                                body: detalleRows,
+                                startY: startY,
+                                theme: 'grid',
+                                margin: { top: 10 },
+                                styles: { fontSize: 10 }
+                            });
+        
+                            startY = doc.lastAutoTable.finalY + 10; // Actualizamos el punto de inicio para el siguiente pedido
+                        } else {
+                            console.error('Error en los datos de detalle de pedido:', data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                    });
+        
+                promises.push(fetchPromise);
+            });
+        
+            // Esperar a que todas las promesas (fetches) se completen antes de descargar el PDF
+            Promise.all(promises).then(() => {
+                // Descargar el archivo PDF
+                doc.save('reporte_pedidos.pdf');
+            });
+        });
+        
+        document.getElementById('exportarPDFCompras').addEventListener('click', function () {
+            var { jsPDF } = window.jspdf;
+            var doc = new jsPDF();
+        
+            // Función para dibujar el encabezado en cada página
+            function drawHeader(doc) {
+                doc.addImage("https://raw.githubusercontent.com/JorgeZamorano215/Imagenes/main/logoAV.png", 'PNG', 10, 10, 40, 40);
+                doc.setFontSize(20);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ABARROTES VAZQUEZ', 105, 20, null, null, 'center');
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'normal');
+                doc.text('VINOS Y LICORES', 105, 28, null, null, 'center');
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'normal');
+                const addressLines = [
+                    'AV. Las Jacarandas',
+                    '8Va. Calle Sur Oriente.',
+                    'Barr Las Chilcas'
+                ];
+                addressLines.forEach((line, index) => {
+                    doc.text(line, 190, 30 + (index * 5), null, null, 'right');
+                });
+        
+                const fechaInicioP = document.getElementById("IdFecIniC").value;
+                const fechaFinP = document.getElementById("IdFecFinC").value;
+        
+                // Verificar si las fechas están vacías
+                if (fechaInicioP === "" && fechaFinP === "") {
+                    doc.text('Reporte de compras: Todas las compras', 105, 50, null, null, 'center');
+                } else {
+                    doc.text(`Reporte de compras período: ${fechaInicioP} - ${fechaFinP}`, 105, 50, null, null, 'center');
+                }
+            }
+        
+            // Dibujar encabezado en la primera página
+            drawHeader(doc);
+        
+            // Seleccionar filas de la tabla de compras
+            var compras = document.querySelectorAll('#tableBodyCompras tr');
+            var promises = [];
+            var startY = 60; // Posición inicial en el PDF
+        
+            compras.forEach(function (tr, index) {
+                var compraId = tr.getAttribute('data-compra-id');
+                
+                // Verificar que la fila tiene un id de compra
+                if (!compraId) {
+                    console.error(`No se encontró el atributo data-compra-id en la fila ${index}`);
+                    return;
+                }
+        
+                // Crear la fila para los datos principales de la compra
+                var compraRow = [];
+                tr.querySelectorAll('td').forEach(function (td) {
+                    compraRow.push(td.innerText);
+                });
+        
+                // Dibujar los datos de la compra en el PDF
+                doc.autoTable({
+                    head: [['ID', 'Empleado', 'Proveedor', 'Fecha Pedido', 'Fecha Compra', 'Subtotal', 'Impuesto', 'Total', 'Observacion']],
+                    body: [[compraRow[0], compraRow[1], compraRow[2], compraRow[3], compraRow[4], compraRow[5], compraRow[6], compraRow[7], compraRow[8]]],
+                    startY: startY,
+                    theme: 'grid',
+                    margin: { top: 10 },
+                    styles: { fontSize: 10 }
+                });
+        
+                startY = doc.lastAutoTable.finalY + 5; // Espacio para separación
+        
+                // Hacer la consulta para obtener los detalles de la compra
+                var fetchPromise = fetch(`/detalleCompra/${compraId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.error) {
+                            // Crear las filas para los productos de la compra
+                            var detalleRows = [];
+                            data.detalleCompra.forEach(detalle => {
+                                detalleRows.push([
+                                    detalle.codigo, 
+                                    detalle.producto, 
+                                    detalle.precio, 
+                                    detalle.cantidad, 
+                                    detalle.subtotal,
+                                    detalle.observacion
+                                ]);
+                            });
+        
+                            // Agregar los detalles (productos) justo debajo de la información de la compra
+                            doc.autoTable({
+                                head: [['Código', 'Producto', 'Precio', 'Cantidad', 'Subtotal', 'Observacion']],
+                                body: detalleRows,
+                                startY: startY,
+                                theme: 'grid',
+                                margin: { top: 10 },
+                                styles: { fontSize: 10 }
+                            });
+        
+                            startY = doc.lastAutoTable.finalY + 10; // Actualizamos el punto de inicio para el siguiente pedido
+                        } else {
+                            console.error('Error en los datos de detalle de compra:', data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                    });
+        
+                promises.push(fetchPromise);
+            });
+        
+            // Esperar a que todas las promesas (fetches) se completen antes de descargar el PDF
+            Promise.all(promises).then(() => {
+                // Descargar el archivo PDF
+                doc.save('reporte_compras.pdf');
+            });
+        });
+
+        document.getElementById('exportarPDFEfectivo').addEventListener('click', function () {
+            var { jsPDF } = window.jspdf;
+            var doc = new jsPDF();
+        
+            // Función para dibujar el encabezado en cada página
+            function drawHeader(doc) {
+                doc.addImage("https://raw.githubusercontent.com/JorgeZamorano215/Imagenes/main/logoAV.png", 'PNG', 10, 10, 40, 40);
+                doc.setFontSize(20);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ABARROTES VAZQUEZ', 105, 20, null, null, 'center');
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'normal');
+                doc.text('VINOS Y LICORES', 105, 28, null, null, 'center');
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'normal');
+                const addressLines = [
+                    'AV. Las Jacarandas',
+                    '8Va. Calle Sur Oriente.',
+                    'Barr Las Chilcas'
+                ];
+                addressLines.forEach((line, index) => {
+                    doc.text(line, 190, 30 + (index * 5), null, null, 'right');
+                });
+        
+                const fechaInicioP = document.getElementById("IdFecIniE").value;
+                const fechaFinP = document.getElementById("IdFecFinE").value;
+        
+                // Verificar si las fechas están vacías
+                if (fechaInicioP === "" && fechaFinP === "") {
+                    doc.text('Reporte de efectivo: Todos los movimientos', 105, 50, null, null, 'center');
+                } else {
+                    doc.text(`Reporte de efectivo período: ${fechaInicioP} - ${fechaFinP}`, 105, 50, null, null, 'center');
+                }
+            }
+        
+            // Dibujar encabezado en la primera página
+            drawHeader(doc);
+        
+            // Seleccionar filas de la tabla de efectivo
+            var movimientos = document.querySelectorAll('#tableBodyEfectivo tr');
+            var startY = 60; // Posición inicial en el PDF
+        
+            // Dibujar los datos de los movimientos de efectivo en el PDF
+            movimientos.forEach(function (tr) {
+                var movimientoRow = [];
+                tr.querySelectorAll('td, th').forEach(function (td) {
+                    movimientoRow.push(td.innerText);
+                });
+        
+                // Dibujar los datos de cada movimiento en el PDF
+                doc.autoTable({
+                    head: [['Cv', 'Anterior', 'Monto', 'Actual', 'Tipo de Transacción', 'Concepto', 'InfConcepto', 'Empleado', 'Fecha', 'Observación']],
+                    body: [[movimientoRow[0], movimientoRow[1], movimientoRow[2], movimientoRow[3], movimientoRow[4], movimientoRow[5], movimientoRow[6], movimientoRow[7], movimientoRow[8], movimientoRow[9]]],
+                    startY: startY,
+                    theme: 'grid',
+                    margin: { top: 10 },
+                    styles: { fontSize: 10 }
+                });
+        
+                startY = doc.lastAutoTable.finalY + 5; // Espacio para separación
+            });
+        
+            // Descargar el archivo PDF
+            doc.save('reporte_efectivo.pdf');
+        });
+        
+        document.getElementById('exportarPDFProductosMovimiento').addEventListener('click', function () {
+            var { jsPDF } = window.jspdf;
+            var doc = new jsPDF();
+        
+            // Función para dibujar el encabezado en cada página
+            function drawHeader(doc) {
+                doc.addImage("https://raw.githubusercontent.com/JorgeZamorano215/Imagenes/main/logoAV.png", 'PNG', 10, 10, 40, 40);
+                doc.setFontSize(20);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ABARROTES VAZQUEZ', 105, 20, null, null, 'center');
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'normal');
+                doc.text('VINOS Y LICORES', 105, 28, null, null, 'center');
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'normal');
+                const addressLines = [
+                    'AV. Las Jacarandas',
+                    '8Va. Calle Sur Oriente.',
+                    'Barr Las Chilcas'
+                ];
+                addressLines.forEach((line, index) => {
+                    doc.text(line, 190, 30 + (index * 5), null, null, 'right');
+                });
+        
+                doc.text('Reporte de Productos Con Menos Movimientos', 105, 50, null, null, 'center');
+            }
+        
+            // Dibujar encabezado en la primera página
+            drawHeader(doc);
+        
+            // Seleccionar filas de la tabla de efectivo
+            var movimientos = document.querySelectorAll('#tableBodyProducMov tr');
+
+            // Crear un array para almacenar todos los datos de los movimientos
+            var movimientosData = [];
+
+            // Recorrer cada fila de la tabla y extraer los datos
+            movimientos.forEach(function (tr) {
+                var movimientoRow = [];
+                tr.querySelectorAll('td, th').forEach(function (td) {
+                    movimientoRow.push(td.innerText);
+                });
+                movimientosData.push(movimientoRow); // Agregar la fila a la lista de movimientos
+            });
+
+            // Dibujar todos los datos en una única tabla en el PDF
+            doc.autoTable({
+                head: [['Codigo', 'Producto', 'Cantidad Vendida']], // Encabezado de la tabla
+                body: movimientosData,  // Cuerpo de la tabla con todos los datos de los movimientos
+                startY: 60,             // Posición inicial en el PDF
+                theme: 'grid',
+                margin: { top: 10 },
+                styles: { fontSize: 10 }
+            });
+        
+            // Descargar el archivo PDF
+            doc.save('reporte_MovimientoProductos.pdf');
+        });
+        
+        document.getElementById('exportarPDFProductosCaducidad').addEventListener('click', function () {
+            var { jsPDF } = window.jspdf;
+            var doc = new jsPDF();
+        
+            // Función para dibujar el encabezado en cada página
+            function drawHeader(doc) {
+                doc.addImage("https://raw.githubusercontent.com/JorgeZamorano215/Imagenes/main/logoAV.png", 'PNG', 10, 10, 40, 40);
+                doc.setFontSize(20);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ABARROTES VAZQUEZ', 105, 20, null, null, 'center');
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'normal');
+                doc.text('VINOS Y LICORES', 105, 28, null, null, 'center');
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'normal');
+                const addressLines = [
+                    'AV. Las Jacarandas',
+                    '8Va. Calle Sur Oriente.',
+                    'Barr Las Chilcas'
+                ];
+                addressLines.forEach((line, index) => {
+                    doc.text(line, 190, 30 + (index * 5), null, null, 'right');
+                });
+        
+                const fechaInicioP = document.getElementById("IdFecIniCad").value;
+                const fechaFinP = document.getElementById("IdFecFinCad").value;
+        
+                // Verificar si las fechas están vacías
+                if (fechaInicioP === "" && fechaFinP === "") {
+                    doc.text('Reporte de Productos Caducados:', 105, 50, null, null, 'center');
+                } else {
+                    doc.text(`Reporte de Productos Por Caducar Período: ${fechaInicioP} - ${fechaFinP}`, 105, 50, null, null, 'center');
+                }
+            }
+        
+            // Dibujar encabezado en la primera página
+            drawHeader(doc);
+        
+            // Seleccionar filas de la tabla de efectivo
+            var movimientos = document.querySelectorAll('#tableBodyCaducidad tr');
+
+            // Crear un array para almacenar todos los datos de los movimientos
+            var movimientosData = [];
+
+            // Recorrer cada fila de la tabla y extraer los datos
+            movimientos.forEach(function (tr) {
+                var movimientoRow = [];
+                tr.querySelectorAll('td, th').forEach(function (td) {
+                    movimientoRow.push(td.innerText);
+                });
+                movimientosData.push(movimientoRow); // Agregar la fila a la lista de movimientos
+            });
+
+            // Dibujar todos los datos en una única tabla en el PDF
+            doc.autoTable({
+                head: [['Codigo', 'Producto', 'Fecha de Caducidad', 'Cantidad existente']], // Encabezado de la tabla
+                body: movimientosData,  // Cuerpo de la tabla con todos los datos de los movimientos
+                startY: 60,             // Posición inicial en el PDF
+                theme: 'grid',
+                margin: { top: 10 },
+                styles: { fontSize: 10 }
+            });
+        
+            // Descargar el archivo PDF
+            doc.save('reporte_CaducidadProductos.pdf');
+        });
+
+        //MOdal para ver los detalles del reporte
+        document.addEventListener('DOMContentLoaded', function () {
+            var exampleModal = document.getElementById('exampleModal');
+            exampleModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget; // Button that triggered the modal
+                var ventaId = button.getAttribute('data-venta-id'); // Extract info from data-* attributes
+        
+                // Fetch the detail data from the server
+                fetch(`/detalleVenta/${ventaId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        var tableBody = document.getElementById('tableBody1');
+                        tableBody.innerHTML = ''; // Clear existing table rows
+        
+                        if (data.error) {
+                            tableBody.innerHTML = `<tr><td colspan="5">${data.error}</td></tr>`;
+                        } else {
+                            data.detalleVenta.forEach(detalle => {
+                                var row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${detalle.codigo}</td>
+                                    <td>${detalle.producto}</td>
+                                    <td>${detalle.precio}</td>
+                                    <td>${detalle.cantidad}</td>
+                                    <td>${detalle.subtotal}</td>
+                                `;
+                                tableBody.appendChild(row);
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            });
+        });
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            var exampleModal = document.getElementById('examplePedido');
+            exampleModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget; // Button that triggered the modal
+                var pedidoId = button.getAttribute('data-pedido-id'); // Extract info from data-* attributes
+        
+                // Fetch the detail data from the server
+                fetch(`/detallePedido/${pedidoId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        var tableBody = document.getElementById('tableBodyDetallePedido');
+                        tableBody.innerHTML = ''; // Clear existing table rows
+        
+                        if (data.error) {
+                            tableBody.innerHTML = `<tr><td colspan="5">${data.error}</td></tr>`;
+                        } else {
+                            data.detallePedido.forEach(detalle => {
+                                var row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${detalle.codigo}</td>
+                                    <td>${detalle.producto}</td>
+                                    <td>${detalle.precio}</td>
+                                    <td>${detalle.cantidad}</td>
+                                    <td>${detalle.subtotal}</td>
+                                `;
+                                tableBody.appendChild(row);
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var exampleModal = document.getElementById('exampleCompra');
+            exampleModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget; // Button that triggered the modal
+                var compraId = button.getAttribute('data-compra-id'); // Extract info from data-* attributes
+        
+                // Fetch the detail data from the server
+                fetch(`/detalleCompra/${compraId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        var tableBody = document.getElementById('tableBodyDetalleCompra');
+                        tableBody.innerHTML = ''; // Clear existing table rows
+        
+                        if (data.error) {
+                            tableBody.innerHTML = `<tr><td colspan="6">${data.error}</td></tr>`;
+                        } else {
+                            data.detalleCompra.forEach(detalle => {
+                                var row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${detalle.codigo}</td>
+                                    <td>${detalle.producto}</td>
+                                    <td>${detalle.precio}</td>
+                                    <td>${detalle.cantidad}</td>
+                                    <td>${detalle.subtotal}</td>
+                                    <td>${detalle.observacion}</td>
+                                `;
+                                tableBody.appendChild(row);
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            });
+        });
+
+        //Proceso de reporte de rango de fechas
+        
+        //VENTA
+        // Obtener los elementos de fecha
+        const fechaInicioV = document.getElementById("IdFecIniV");
+        const fechaFinV = document.getElementById("IdFecFinV");
+        // Escuchar cambios en la fecha de inicio
+        fechaInicioV.addEventListener("change", function() {
+            // Verificar si el campo de fecha final tiene un valor
+            if (fechaFinV.value === "") {
+                //alert("Debe seleccionar una fecha final");
+            } else {
+                // Comparar las fechas solo si hay un valor en ambos campos
+                if (new Date(fechaInicioV.value) > new Date(fechaFinV.value)) {
+                    alert("La fecha de inicio no puede ser mayor que la fecha final");
+                } else {
+                    PeriodoVentas();
+                }
+            }
+
+        });
+        // Escuchar cambios en la fecha de fin
+        fechaFinV.addEventListener("change", function() {
+            // Verificar si el campo de fecha inicio tiene un valor
+            if (fechaInicioV.value === "") {
+                //alert("Debe seleccionar una fecha final");
+            } else {
+                // Comparar las fechas solo si hay un valor en ambos campos
+                if (new Date(fechaInicioV.value) > new Date(fechaFinV.value)) {
+                    alert("La fecha de Final no puede ser menor a la fecha inicio");
+                } else {
+                    PeriodoVentas();
+                }
+            }
+        });
+        function PeriodoVentas() {
+            // Obtener los elementos de fecha
+            const fechaInicio = document.getElementById("IdFecIniV").value;
+            const fechaFin = document.getElementById("IdFecFinV").value;
+            
+            fetch(`/api/ReportePeriodoVentas/${fechaInicio}/${fechaFin}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const { ventas } = data;
+                    
+                    // Limpiar la tabla antes de agregar nuevas filas
+                    const tableBody = document.getElementById('tableBody');
+                    tableBody.innerHTML = '';
+        
+                    ventas.forEach(v => {
+                        // Obtener los valores de los campos de entrada
+                        const ID = v.id;  
+                        const Empleado = v.NombreEmpleados;
+                        const Cliente = v.NombreClietes;
+                        const Fecha = v.FechaVenta;
+                        const SubTotal = v.SubTotal;
+                        const Impuesto = v.Impuesto;
+                        const Total = v.Total;
+        
+                        // Crear una nueva fila en la tabla con el atributo `data-venta-id` en <tr>
+                        const newRow = document.createElement('tr');
+                        newRow.setAttribute('data-venta-id', ID);  // Agregar el atributo `data-venta-id` al <tr>
+                        newRow.innerHTML = `
+                            <td>${ID}</td>
+                            <td>${Empleado}</td>
+                            <td>${Cliente}</td>
+                            <td>${Fecha}</td>
+                            <td>$${SubTotal.toFixed(2)}</td>
+                            <td>$${Impuesto.toFixed(2)}</td>
+                            <td>$${Total.toFixed(2)}</td>
+                            <td>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-venta-id="${ID}">
+                                    Detalle
+                                </button>
+                            </td>
+                        `;
+        
+                        // Agregar la nueva fila al cuerpo de la tabla
+                        tableBody.appendChild(newRow);
+                    });
+                })
+                .catch(error => console.error('Error al obtener las ventas:', error));
+        }
+
+        //PEDIDO
+        // Obtener los elementos de fecha
+        const fechaInicioP = document.getElementById("IdFecIniP");
+        const fechaFinP = document.getElementById("IdFecFinP");
+        // Escuchar cambios en la fecha de inicio
+        fechaInicioP.addEventListener("change", function() {
+            // Verificar si el campo de fecha final tiene un valor
+            if (fechaFinP.value === "") {
+                //alert("Debe seleccionar una fecha final");
+            } else {
+                // Comparar las fechas solo si hay un valor en ambos campos
+                if (new Date(fechaInicioP.value) > new Date(fechaFinP.value)) {
+                    alert("La fecha de inicio no puede ser mayor que la fecha final");
+                } else {
+                    PeriodoPedidos();
+                }
+            }
+
+        });
+        // Escuchar cambios en la fecha de fin
+        fechaFinP.addEventListener("change", function() {
+            // Verificar si el campo de fecha inicio tiene un valor
+            if (fechaInicioP.value === "") {
+                //alert("Debe seleccionar una fecha final");
+            } else {
+                // Comparar las fechas solo si hay un valor en ambos campos
+                if (new Date(fechaInicioP.value) > new Date(fechaFinP.value)) {
+                    alert("La fecha de Final no puede ser menor a la fecha inicio");
+                } else {
+                    PeriodoPedidos();
+                }
+            }
+        });
+        function PeriodoPedidos() {
+            // Obtener los elementos de fecha
+            const fechaInicio = document.getElementById("IdFecIniP").value;
+            const fechaFin = document.getElementById("IdFecFinP").value;
+            
+            fetch(`/api/ReportePeriodoPedidos/${fechaInicio}/${fechaFin}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const { pedidos } = data;
+                    
+                    // Limpiar la tabla antes de agregar nuevas filas
+                    const tableBody = document.getElementById('tableBodyPedidos');
+                    tableBody.innerHTML = '';
+        
+                    pedidos.forEach(v => {
+                        // Obtener los valores de los campos de entrada
+                        const ID = v.id;
+                        const Empleados = v.NombreEmpleados;
+                        const Proveedor = v.NombreProveedor;
+                        const FechaPedido = v.FechaPedido;
+                        const FechaEntrega = v.FechaEntrega;
+                        const SubTotal = v.SubTotal;
+                        const Impuesto = v.Impuesto;
+                        const Total = v.Total;
+                        const Anticipo = v.Anticipo;
+                        const Pagado = v.Pagado;
+                        const Recibido = v.Recibido;
+        
+                        // Crear una nueva fila en la tabla con el atributo `data-venta-id` en <tr>
+                        const newRow = document.createElement('tr');
+                        newRow.setAttribute('data-pedido-id', ID);  // Agregar el atributo `data-venta-id` al <tr>
+                        newRow.innerHTML = `
+                            <td>${ID}</td>
+                            <td>${Empleados}</td>
+                            <td>${Proveedor}</td>
+                            <td>${FechaPedido}</td>
+                            <td>${FechaEntrega}</td>
+                            <td>$${SubTotal.toFixed(2)}</td>
+                            <td>$${Impuesto.toFixed(2)}</td>
+                            <td>$${Total.toFixed(2)}</td>
+                            <td>$${Anticipo.toFixed(2)}</td>
+                            <td>${Pagado}</td>
+                            <td>${Recibido}</td>
+                            <td>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#examplePedido" data-pedido-id="${ID}">
+                                    Detalle
+                                </button>
+                            </td>
+                        `;
+        
+                        // Agregar la nueva fila al cuerpo de la tabla
+                        tableBody.appendChild(newRow);
+                    });
+                })
+                .catch(error => console.error('Error al obtener los pedidos:', error));
+        }
+
+        //COMPRA (RECEPCION)
+        // Obtener los elementos de fecha
+        const fechaInicioC = document.getElementById("IdFecIniC");
+        const fechaFinC = document.getElementById("IdFecFinC");
+        // Escuchar cambios en la fecha de inicio
+        fechaInicioC.addEventListener("change", function() {
+            // Verificar si el campo de fecha final tiene un valor
+            if (fechaFinC.value === "") {
+                //alert("Debe seleccionar una fecha final");
+            } else {
+                // Comparar las fechas solo si hay un valor en ambos campos
+                if (new Date(fechaInicioC.value) > new Date(fechaFinC.value)) {
+                    alert("La fecha de inicio no puede ser mayor que la fecha final");
+                } else {
+                    PeriodoCompras();
+                }
+            }
+
+        });
+        // Escuchar cambios en la fecha de fin
+        fechaFinC.addEventListener("change", function() {
+            // Verificar si el campo de fecha inicio tiene un valor
+            if (fechaInicioC.value === "") {
+                //alert("Debe seleccionar una fecha final");
+            } else {
+                // Comparar las fechas solo si hay un valor en ambos campos
+                if (new Date(fechaInicioC.value) > new Date(fechaFinC.value)) {
+                    alert("La fecha de Final no puede ser menor a la fecha inicio");
+                } else {
+                    PeriodoCompras();
+                }
+            }
+        });
+        function PeriodoCompras() {
+            // Obtener los elementos de fecha
+            const fechaInicio = document.getElementById("IdFecIniC").value;
+            const fechaFin = document.getElementById("IdFecFinC").value;
+            
+            fetch(`/api/ReportePeriodoCompras/${fechaInicio}/${fechaFin}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const { compras } = data;
+                    
+                    // Limpiar la tabla antes de agregar nuevas filas
+                    const tableBody = document.getElementById('tableBodyCompras');
+                    tableBody.innerHTML = '';
+        
+                    compras.forEach(v => {
+                        // Obtener los valores de los campos de entrada
+                        const ID = v.id;
+                        const Empleados = v.NombreEmpleados;
+                        const Proveedor = v.NombreProveedor;
+                        const FechaPedido = v.FechaPedido;
+                        const FechaCompra = v.FechaCompra;
+                        const SubTotal = v.SubTotal;
+                        const Impuesto = v.Impuesto;
+                        const Total = v.Total;
+                        const Observacion = v.Observacion;
+        
+                        // Crear una nueva fila en la tabla con el atributo `data-venta-id` en <tr>
+                        const newRow = document.createElement('tr');
+                        newRow.setAttribute('data-compra-id', ID);  // Agregar el atributo `data-venta-id` al <tr>
+                        newRow.innerHTML = `
+                            <td>${ID}</td>
+                            <td>${Empleados}</td>
+                            <td>${Proveedor}</td>
+                            <td>${FechaPedido}</td>
+                            <td>${FechaCompra}</td>
+                            <td>$${SubTotal.toFixed(2)}</td>
+                            <td>$${Impuesto.toFixed(2)}</td>
+                            <td>$${Total.toFixed(2)}</td>
+                            <td>${Observacion}</td>
+                            <td>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleCompra" data-compra-id="${ID}">
+                                    Detalle
+                                </button>
+                            </td>
+                        `;
+        
+                        // Agregar la nueva fila al cuerpo de la tabla
+                        tableBody.appendChild(newRow);
+                    });
+                })
+                .catch(error => console.error('Error al obtener las compras:', error));
+        }
+        
+        //Efectivo
+
+        // Obtener los elementos de fecha
+        const fechaInicioE = document.getElementById("IdFecIniE");
+        const fechaFinE = document.getElementById("IdFecFinE");
+        // Escuchar cambios en la fecha de inicio
+        fechaInicioE.addEventListener("change", function() {
+            // Verificar si el campo de fecha final tiene un valor
+            if (fechaFinE.value === "") {
+                //alert("Debe seleccionar una fecha final");
+            } else {
+                // Comparar las fechas solo si hay un valor en ambos campos
+                if (new Date(fechaInicioE.value) > new Date(fechaFinE.value)) {
+                    alert("La fecha de inicio no puede ser mayor que la fecha final");
+                } else {
+                    PeriodoEfectivo();
+                }
+            }
+
+        });
+        // Escuchar cambios en la fecha de fin
+        fechaFinE.addEventListener("change", function() {
+            // Verificar si el campo de fecha inicio tiene un valor
+            if (fechaInicioE.value === "") {
+                //alert("Debe seleccionar una fecha final");
+            } else {
+                // Comparar las fechas solo si hay un valor en ambos campos
+                if (new Date(fechaInicioE.value) > new Date(fechaFinE.value)) {
+                    alert("La fecha de Final no puede ser menor a la fecha inicio");
+                } else {
+                    PeriodoEfectivo();
+                }
+            }
+        });
+        function PeriodoEfectivo() {
+            // Obtener los elementos de fecha
+            const fechaInicio = document.getElementById("IdFecIniE").value;
+            const fechaFin = document.getElementById("IdFecFinE").value;
+            
+            fetch(`/api/ReportePeriodoEfectivo/${fechaInicio}/${fechaFin}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const { movimientos } = data;
+                    
+                    // Limpiar la tabla antes de agregar nuevas filas
+                    const tableBody = document.getElementById('tableBodyEfectivo');
+                    tableBody.innerHTML = '';
+        
+                    movimientos.forEach(v => {
+                        // Obtener los valores de los campos de entrada
+                        const ID = v.id;
+                        const Anterior = v.Anterior;
+                        const Monto = v.Monto;
+                        const Actual = v.Actual;
+                        const Tipo = v.TpTransaccion;
+                        const Concepto = v.Concepto;
+                        const InfConcepto = v.InfConcepto;
+                        const Empleado = v.NombreEmpleados;
+                        const Fecha = v.Fecha;
+                        const Observacion = v.Observacion;
+        
+                        // Crear una nueva fila en la tabla con el atributo `data-venta-id` en <tr>
+                        const newRow = document.createElement('tr');
+                        newRow.setAttribute('data-efectivo-id', ID);  // Agregar el atributo `data-venta-id` al <tr>
+                        newRow.innerHTML = `
+                            <td>${ID}</td>
+                            <td>$${Anterior.toFixed(2)}</td>
+                            <td>$${Monto.toFixed(2)}</td>
+                            <td>$${Actual.toFixed(2)}</td>
+                            <td>${Tipo}</td>
+                            <td>${Concepto}</td>
+                            <td>${InfConcepto}</td>
+                            <td>${Empleado}</td>
+                            <td>${Fecha}</td>
+                            <td>${Observacion}</td>
+                        `;
+        
+                        // Agregar la nueva fila al cuerpo de la tabla
+                        tableBody.appendChild(newRow);
+                    });
+                })
+                .catch(error => console.error('Error al obtener las compras:', error));
+        }
+        
+        
+        //Caducidad
+
+        // Obtener los elementos de fecha
+        const fechaInicioCad = document.getElementById("IdFecIniCad");
+        const fechaFinCad = document.getElementById("IdFecFinCad");
+        // Escuchar cambios en la fecha de inicio
+        fechaInicioCad.addEventListener("change", function() {
+            // Verificar si el campo de fecha final tiene un valor
+            if (fechaFinCad.value === "") {
+                //alert("Debe seleccionar una fecha final");
+            } else {
+                // Comparar las fechas solo si hay un valor en ambos campos
+                if (new Date(fechaInicioCad.value) > new Date(fechaFinCad.value)) {
+                    alert("La fecha de inicio no puede ser mayor que la fecha final");
+                } else {
+                    PeriodoCaducidad();
+                }
+            }
+
+        });
+        // Escuchar cambios en la fecha de fin
+        fechaFinCad.addEventListener("change", function() {
+            // Verificar si el campo de fecha inicio tiene un valor
+            if (fechaInicioCad.value === "") {
+                //alert("Debe seleccionar una fecha final");
+            } else {
+                // Comparar las fechas solo si hay un valor en ambos campos
+                if (new Date(fechaInicioCad.value) > new Date(fechaFinCad.value)) {
+                    alert("La fecha de Final no puede ser menor a la fecha inicio");
+                } else {
+                    PeriodoCaducidad();
+                }
+            }
+        });
+        function PeriodoCaducidad() {
+            // Obtener los elementos de fecha
+            const fechaInicio = document.getElementById("IdFecIniCad").value;
+            const fechaFin = document.getElementById("IdFecFinCad").value;
+            
+            fetch(`/api/ReportePeriodoCaducidad/${fechaInicio}/${fechaFin}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const { productos } = data;
+                    
+                    // Limpiar la tabla antes de agregar nuevas filas
+                    const tableBody = document.getElementById('tableBodyCaducidad');
+                    tableBody.innerHTML = '';
+        
+                    productos.forEach(v => {
+                        // Obtener los valores de los campos de entrada
+                        const Codigo = v.Codigo;
+                        const Nombre = v.Producto;
+                        const Fecha = v.FechaCaducidad;
+                        const Cantidad = v.Stock;
+        
+                        // Crear una nueva fila en la tabla con el atributo `data-venta-id` en <tr>
+                        const newRow = document.createElement('tr');
+                        newRow.setAttribute('data-caducidad-id', Codigo);  // Agregar el atributo `data-venta-id` al <tr>
+                        newRow.innerHTML = `
+                            <td>${Codigo}</td>
+                            <td>${Nombre}</td>
+                            <td>${Fecha}</td>
+                            <td>${Cantidad}</td>
+                        `;
+        
+                        // Agregar la nueva fila al cuerpo de la tabla
+                        tableBody.appendChild(newRow);
+                    });
+                })
+                .catch(error => console.error('Error al obtener los productos:', error));
+        }
+        
+    </script>
+
+{% endblock %}
+
+
