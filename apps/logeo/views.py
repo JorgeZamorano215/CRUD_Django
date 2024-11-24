@@ -678,7 +678,7 @@ def listar_catalagos(request,modelo_nombre):
     M.btn_Eliminar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=120000).count()
     M.btn_Modificar = mAccesos.objects.filter(CvUsuario=r.CvUsuario, DsAplicaciones=130000).count() 
     
-    return render(request, "Listacatalagos.html", {"titulo":titulo.Nombre, "agregar":modelo_nombre, "catalagos":catalagos, "listas":listas, "mensaje":MensajeCatalagos2, "M":M}) 
+    return render(request, "ListaCatalagos.html", {"titulo":titulo.Nombre, "agregar":modelo_nombre, "catalagos":catalagos, "listas":listas, "mensaje":MensajeCatalagos2, "M":M}) 
 
 def listar_catalagos_vacio(request):
     listas = cCatalagos.objects.all()
