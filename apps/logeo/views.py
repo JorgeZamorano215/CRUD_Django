@@ -2072,7 +2072,7 @@ def listar_productos(request):
 def registrar_productos(request):
     Titulo = "Registro de Inventario"    
     Productos = mProductos.objects.all()
-    Proveedores = mDtPerson.objects.filter(CvTpPerson=3)
+    Proveedores = mDtPerson.objects.filter(CvTpPerson=2)
     
     for u in Productos:
         u.busqueda = mDtPerson.objects.filter(id=u.Proveedor).first()
@@ -2153,7 +2153,7 @@ def editar_productos(request, id_Producto):
     ProductoEditar.Caducidad = ProductoEditar.FechaCaducidad.strftime('%Y-%m-%d')
     
     Productos = mProductos.objects.all()
-    Proveedores = mDtPerson.objects.filter(CvTpPerson=3)
+    Proveedores = mDtPerson.objects.filter(CvTpPerson=2)
     
     for u in Productos:
         u.busqueda = mDtPerson.objects.filter(id=u.Proveedor).first()
